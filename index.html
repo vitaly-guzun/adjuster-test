@@ -208,35 +208,41 @@
                 <h2>Настраиваемые параметры</h2>
                 <div class="parameters-controls">
                     <div class="address-grid">
-                        <div class="address-field">
-                            <label for="address1">Адрес 1:</label>
+                        <!-- Поле для AM1 (одноканальное устройство) -->
+                        <div class="address-field am1-only">
+                            <label for="address1">Адрес:</label>
                             <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <!-- Поля для AM8 (8-канальное устройство) -->
+                        <div class="address-field am8-only">
+                            <label for="address1-am8">Адрес 1:</label>
+                            <input type="number" id="address1-am8" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <div class="address-field am8-only">
                             <label for="address2">Адрес 2:</label>
                             <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address3">Адрес 3:</label>
                             <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address4">Адрес 4:</label>
                             <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address5">Адрес 5:</label>
                             <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address6">Адрес 6:</label>
                             <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address7">Адрес 7:</label>
                             <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
                         </div>
-                        <div class="address-field">
+                        <div class="address-field am8-only">
                             <label for="address8">Адрес 8:</label>
                             <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
                         </div>
@@ -270,7 +276,8 @@
                     <div class="table-cell">Состояние входа</div>
                 </div>
                 <div class="table-body" id="testResults">
-                    <div class="table-row">
+                    <!-- Строка для АМ1 (одноканальное устройство) -->
+                    <div class="table-row am1-only">
                         <div class="table-cell">1</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -284,7 +291,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    
+                    <!-- Строки для АМ8 (8-канальное устройство) -->
+                    <div class="table-row am8-only">
+                        <div class="table-cell">1</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row am8-only">
                         <div class="table-cell">2</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -298,7 +321,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">3</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -312,7 +335,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">4</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -326,7 +349,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">5</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -340,7 +363,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">6</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -354,7 +377,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">7</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">
@@ -368,7 +391,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-row">
+                    <div class="table-row am8-only">
                         <div class="table-cell">8</div>
                         <div class="table-cell">
                             <div class="status-indicator offline">

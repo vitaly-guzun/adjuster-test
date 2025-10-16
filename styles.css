@@ -1042,3 +1042,52 @@ body {
     border-color: #667eea;
     box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
+
+/* Tab-specific address fields visibility */
+.address-field.am1-only {
+    display: none;
+}
+
+.address-field.am8-only {
+    display: none;
+}
+
+/* Show appropriate fields based on active tab */
+body.am1-active .address-field.am1-only {
+    display: flex;
+}
+
+body.am8-active .address-field.am8-only {
+    display: flex;
+}
+
+/* Adjust grid layout for AM1 (single field) */
+body.am1-active .address-grid {
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+    justify-content: center;
+}
+
+/* Keep 4x2 grid for AM8 */
+body.am8-active .address-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+/* Table row visibility control */
+.table-row.am1-only {
+    display: none;
+}
+
+.table-row.am8-only {
+    display: none;
+}
+
+/* Show appropriate table rows based on active tab */
+body.am1-active .table-row.am1-only {
+    display: grid;
+}
+
+body.am8-active .table-row.am8-only {
+    display: grid;
+}

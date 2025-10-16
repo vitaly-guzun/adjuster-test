@@ -12,6 +12,9 @@ class RS485Adjuster {
         this.initializeElements();
         this.bindEvents();
         this.loadAvailablePorts();
+        
+        // Initialize active tab class
+        this.initializeActiveTab();
     }
 
     initializeElements() {
@@ -52,6 +55,15 @@ class RS485Adjuster {
 
         // Toast element
         this.toast = document.getElementById('toast');
+    }
+
+    initializeActiveTab() {
+        // Find the currently active tab and set body class
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab) {
+            const tabName = activeTab.dataset.tab;
+            document.body.classList.add(`${tabName}-active`);
+        }
     }
 
     bindEvents() {
@@ -231,6 +243,9 @@ class RS485Adjuster {
         this.tabs.forEach(tab => tab.classList.remove('active'));
         this.tabPanels.forEach(panel => panel.classList.remove('active'));
 
+        // Remove all tab-specific body classes
+        document.body.classList.remove('am1-active', 'am8-active', 'pm-active', 'kl-active', 'sensors-active', 'mok-active');
+
         // Add active class to selected tab and panel
         const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
         const selectedPanel = document.getElementById(tabName);
@@ -238,6 +253,9 @@ class RS485Adjuster {
         if (selectedTab && selectedPanel) {
             selectedTab.classList.add('active');
             selectedPanel.classList.add('active');
+            
+            // Add body class for tab-specific styling
+            document.body.classList.add(`${tabName}-active`);
         }
     }
 
