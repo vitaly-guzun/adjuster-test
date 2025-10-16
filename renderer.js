@@ -31,9 +31,10 @@ class RS485Adjuster {
         this.addressUpBtn = document.getElementById('addressUp');
         this.addressDownBtn = document.getElementById('addressDown');
         this.writeBtn = document.getElementById('writeBtn');
+        this.writeBtnPm = document.getElementById('writeBtnPm');
         
         // Check if elements exist
-        if (!this.writeBtn) {
+        if (!this.writeBtn && !this.writeBtnPm) {
             console.error('Required buttons not found');
         }
 
@@ -62,7 +63,9 @@ class RS485Adjuster {
         const activeTab = document.querySelector('.tab.active');
         if (activeTab) {
             const tabName = activeTab.dataset.tab;
-            document.body.classList.add(`${tabName}-active`);
+            // Special handling for 'am' tab which should use 'am1-active'
+            const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
+            document.body.classList.add(bodyClass);
         }
     }
 
@@ -88,7 +91,12 @@ class RS485Adjuster {
         }
 
         // Action button events
-        this.writeBtn.addEventListener('click', () => this.writeParameters());
+        if (this.writeBtn) {
+            this.writeBtn.addEventListener('click', () => this.writeParameters());
+        }
+        if (this.writeBtnPm) {
+            this.writeBtnPm.addEventListener('click', () => this.writeParameters());
+        }
 
         // Tab events
         this.tabs.forEach(tab => {
@@ -244,7 +252,7 @@ class RS485Adjuster {
         this.tabPanels.forEach(panel => panel.classList.remove('active'));
 
         // Remove all tab-specific body classes
-        document.body.classList.remove('am1-active', 'am8-active', 'pm-active', 'kl-active', 'sensors-active', 'mok-active');
+        document.body.classList.remove('am-active', 'am1-active', 'am8-active', 'pm-active', 'kl-active', 'sensors-active', 'mok-active');
 
         // Add active class to selected tab and panel
         const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
@@ -255,7 +263,9 @@ class RS485Adjuster {
             selectedPanel.classList.add('active');
             
             // Add body class for tab-specific styling
-            document.body.classList.add(`${tabName}-active`);
+            // Special handling for 'am' tab which should use 'am1-active'
+            const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
+            document.body.classList.add(bodyClass);
         }
     }
 
@@ -266,8 +276,11 @@ class RS485Adjuster {
         }
 
         try {
-            this.showLoading(this.writeBtn);
-            this.writeBtn.disabled = true;
+            const activeButton = document.querySelector('.tab-panel.active').id === 'pm' ? this.writeBtnPm : this.writeBtn;
+            if (activeButton) {
+                this.showLoading(activeButton);
+                activeButton.disabled = true;
+            }
 
             // Получить текущие параметры из активной панели
             const activePanel = document.querySelector('.tab-panel.active');
@@ -284,8 +297,11 @@ class RS485Adjuster {
         } catch (error) {
             this.showToast('error', 'Ошибка записи: ' + error.message);
         } finally {
-            this.hideLoading(this.writeBtn);
-            this.writeBtn.disabled = false;
+            const activeButton = document.querySelector('.tab-panel.active').id === 'pm' ? this.writeBtnPm : this.writeBtn;
+            if (activeButton) {
+                this.hideLoading(activeButton);
+                activeButton.disabled = false;
+            }
         }
     }
 

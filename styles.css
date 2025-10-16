@@ -1091,3 +1091,188 @@ body.am1-active .table-row.am1-only {
 body.am8-active .table-row.am8-only {
     display: grid;
 }
+
+/* PM fields visibility */
+.address-field.pm-only {
+    display: none;
+}
+
+body.pm-active .address-field.pm-only {
+    display: flex;
+}
+
+/* Adjust grid layout for PM (4 fields in 4x1 grid, shifted left) */
+body.pm-active .address-grid {
+    grid-template-columns: auto auto auto auto;
+    grid-template-rows: auto;
+    justify-content: flex-start;
+    margin-left: calc(100% / 4); /* Shift left by one full field width */
+}
+
+/* Restore normal positioning for AM1 and AM8 tabs */
+body.am1-active .address-grid,
+body.am8-active .address-grid {
+    display: grid;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+body.am1-active .address-grid {
+    grid-template-columns: auto;
+}
+
+body.am8-active .address-grid {
+    grid-template-columns: auto auto auto auto;
+    grid-template-rows: auto auto;
+}
+
+body.am1-active .buttons-container,
+body.am8-active .buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* PM tab specific positioning */
+body.pm-active .parameters-controls {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+}
+
+body.pm-active .address-grid {
+    display: grid !important;
+    grid-template-columns: auto auto auto auto auto !important;
+    gap: 1rem !important;
+    justify-content: flex-start !important;
+    margin-bottom: 0 !important;
+    width: auto !important;
+    align-items: center !important;
+}
+
+body.pm-active .buttons-container {
+    display: none !important;
+}
+
+body.pm-active .pm-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+body.pm-active #writeBtnPm {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 10px 20px !important;
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    min-width: 120px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Button styles for different tabs */
+body.am1-active .buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+body.am8-active .buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Hide PM button on AM1 and AM8 tabs */
+body.am1-active .pm-button-container,
+body.am8-active .pm-button-container {
+    display: none !important;
+}
+
+body.pm-active .buttons-container {
+    display: none !important;
+}
+
+body.pm-active #writeBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 10px 20px !important;
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    min-width: 120px !important;
+    flex-shrink: 0 !important;
+}
+
+/* PM table row visibility */
+.table-row.pm-only {
+    display: none;
+}
+
+body.pm-active .table-row.pm-only {
+    display: grid;
+}
+
+/* Relay Status Indicators */
+.relay-status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.relay-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.relay-status-indicator.no-data .relay-dot {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.relay-status-indicator.open .relay-dot {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
+
+.relay-status-indicator.closed .relay-dot {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Hover effects for relay status indicators */
+.relay-status-indicator:hover .relay-dot {
+    transform: scale(1.1);
+}
+
+.relay-status-indicator.open:hover .relay-dot {
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+}
+
+.relay-status-indicator.closed:hover .relay-dot {
+    box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
+}

@@ -122,17 +122,9 @@
                     <div id="pm" class="tab-panel">
                         <div class="panel-header">
                             <h3>Настройки PM модуля</h3>
-                            <p>Конфигурация модуля питания</p>
                         </div>
                         <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Напряжение питания</label>
-                                <input type="number" class="form-input" value="24" min="12" max="48">
-                            </div>
-                            <div class="param-card">
-                                <label>Ток нагрузки</label>
-                                <input type="number" class="form-input" value="2.5" step="0.1">
-                            </div>
+                            <!-- Параметры PM модуля будут добавлены здесь -->
                         </div>
                     </div>
 
@@ -246,7 +238,34 @@
                             <label for="address8">Адрес 8:</label>
                             <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
                         </div>
+                        <!-- Поля для PM (4-канальный релейный модуль) -->
+                        <div class="address-field pm-only">
+                            <label for="pm-address1">Адрес 1:</label>
+                            <input type="number" id="pm-address1" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <div class="address-field pm-only">
+                            <label for="pm-address2">Адрес 2:</label>
+                            <input type="number" id="pm-address2" class="form-input" value="2" min="1" max="247">
+                        </div>
+                        <div class="address-field pm-only">
+                            <label for="pm-address3">Адрес 3:</label>
+                            <input type="number" id="pm-address3" class="form-input" value="3" min="1" max="247">
+                            </div>
+                        <div class="address-field pm-only">
+                            <label for="pm-address4">Адрес 4:</label>
+                            <input type="number" id="pm-address4" class="form-input" value="4" min="1" max="247">
+                        </div>
+                        
+                        <!-- Кнопка для PM (внутри grid) -->
+                        <div class="pm-button-container pm-only">
+                            <button id="writeBtnPm" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Записать
+                            </button>
+                        </div>
                     </div>
+                    
+                    <!-- Кнопка Записать для всех вкладок -->
                     <div class="buttons-container">
                         <button id="writeBtn" class="btn btn-success">
                             <i class="fas fa-save"></i>
@@ -273,7 +292,7 @@
                 <div class="table-header">
                     <div class="table-cell">Адрес</div>
                     <div class="table-cell">Эл. Питание</div>
-                    <div class="table-cell">Состояние входа</div>
+                    <div class="table-cell">Состояние реле</div>
                 </div>
                 <div class="table-body" id="testResults">
                     <!-- Строка для АМ1 (одноканальное устройство) -->
@@ -402,6 +421,64 @@
                         <div class="table-cell">
                             <div class="input-status-indicator no-data">
                                 <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Строки для PM (4-канальный релейный модуль) -->
+                    <div class="table-row pm-only">
+                        <div class="table-cell">1</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="relay-status-indicator no-data">
+                                <div class="relay-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row pm-only">
+                        <div class="table-cell">2</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="relay-status-indicator open">
+                                <div class="relay-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row pm-only">
+                        <div class="table-cell">3</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="relay-status-indicator closed">
+                                <div class="relay-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row pm-only">
+                        <div class="table-cell">4</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="relay-status-indicator no-data">
+                                <div class="relay-dot"></div>
                             </div>
                         </div>
                     </div>
