@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS485 Adjuster — Desktop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-cogs"></i>
+                    <span>RS485 Adjuster</span>
+                </div>
+                <div class="connection-status" id="connectionStatus">
+                    <i class="fas fa-circle status-indicator"></i>
+                    <span>Отключено</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Connection Controls -->
+        <section class="connection-section">
+            <div class="connection-controls">
+                <div class="control-group">
+                    <label for="comPort">
+                        <i class="fas fa-usb"></i>
+                        COM порт:
+                    </label>
+                    <select id="comPort" class="form-select">
+                        <option value="">Выберите порт...</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="baudRate">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Скорость:
+                    </label>
+                    <select id="baudRate" class="form-select">
+                        <option value="9600">9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                    </select>
+                </div>
+
+                <button id="connectBtn" class="btn btn-primary">
+                    <i class="fas fa-plug"></i>
+                    Подключиться
+                </button>
+
+                <div class="logging-controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="writeLog">
+                        <span class="checkmark"></span>
+                        Писать лог
+                    </label>
+                    <button id="openLogBtn" class="btn btn-secondary">
+                        <i class="fas fa-file-alt"></i>
+                        Открыть лог
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs Section -->
+        <section class="tabs-section">
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="am">
+                        <i class="fas fa-microchip"></i>
+                        AM1
+                    </button>
+                    <button class="tab" data-tab="am8">
+                        <i class="fas fa-microchip"></i>
+                        AM8
+                    </button>
+                    <button class="tab" data-tab="pm">
+                        <i class="fas fa-microchip"></i>
+                        PM
+                    </button>
+                    <button class="tab" data-tab="kl">
+                        <i class="fas fa-link"></i>
+                        КЛ
+                    </button>
+                    <button class="tab" data-tab="sensors">
+                        <i class="fas fa-thermometer-half"></i>
+                        Датчики СГ
+                    </button>
+                    <button class="tab" data-tab="mok">
+                        <i class="fas fa-cog"></i>
+                        MOK
+                    </button>
+                </div>
+
+                <div class="tab-content">
+                    <div id="am" class="tab-panel active">
+                        <div class="panel-header">
+                            <h3>Настройки AM1 модуля</h3>
+                        </div>
+                        <div class="parameters-grid">
+                            <!-- Параметры AM1 модуля будут добавлены здесь -->
+                        </div>
+                    </div>
+
+                    <div id="am8" class="tab-panel">
+                        <div class="panel-header">
+                            <h3>Настройки AM8 модуля</h3>
+                            <p>Конфигурация 8-канального аналогового модуля</p>
+                        </div>
+                        <div class="parameters-grid">
+                            <div class="param-card">
+                                <label>Канал 1</label>
+                                <select class="form-select">
+                                    <option>Отключен</option>
+                                    <option>0-10V</option>
+                                    <option>4-20mA</option>
+                                </select>
+                            </div>
+                            <div class="param-card">
+                                <label>Канал 2</label>
+                                <select class="form-select">
+                                    <option>Отключен</option>
+                                    <option>0-10V</option>
+                                    <option>4-20mA</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pm" class="tab-panel">
+                        <div class="panel-header">
+                            <h3>Настройки PM модуля</h3>
+                            <p>Конфигурация модуля питания</p>
+                        </div>
+                        <div class="parameters-grid">
+                            <div class="param-card">
+                                <label>Напряжение питания</label>
+                                <input type="number" class="form-input" value="24" min="12" max="48">
+                            </div>
+                            <div class="param-card">
+                                <label>Ток нагрузки</label>
+                                <input type="number" class="form-input" value="2.5" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="kl" class="tab-panel">
+                        <div class="panel-header">
+                            <h3>Настройки КЛ модуля</h3>
+                            <p>Конфигурация коммуникационного модуля</p>
+                        </div>
+                        <div class="parameters-grid">
+                            <div class="param-card">
+                                <label>Протокол</label>
+                                <select class="form-select">
+                                    <option>Modbus RTU</option>
+                                    <option>Modbus ASCII</option>
+                                    <option>Profinet</option>
+                                </select>
+                            </div>
+                            <div class="param-card">
+                                <label>Адрес устройства</label>
+                                <input type="number" class="form-input" value="1" min="1" max="247">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sensors" class="tab-panel">
+                        <div class="panel-header">
+                            <h3>Настройки датчиков СГ</h3>
+                            <p>Конфигурация датчиков системы газоанализа</p>
+                        </div>
+                        <div class="parameters-grid">
+                            <div class="param-card">
+                                <label>Тип датчика</label>
+                                <select class="form-select">
+                                    <option>Датчик CO</option>
+                                    <option>Датчик CH4</option>
+                                    <option>Датчик O2</option>
+                                </select>
+                            </div>
+                            <div class="param-card">
+                                <label>Диапазон измерения</label>
+                                <input type="text" class="form-input" value="0-1000 ppm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mok" class="tab-panel">
+                        <div class="panel-header">
+                            <h3>Настройки MOK модуля</h3>
+                            <p>Конфигурация модуля управления клапанами</p>
+                        </div>
+                        <div class="parameters-grid">
+                            <div class="param-card">
+                                <label>Тип клапана</label>
+                                <select class="form-select">
+                                    <option>Электромагнитный</option>
+                                    <option>Пневматический</option>
+                                    <option>Гидравлический</option>
+                                </select>
+                            </div>
+                            <div class="param-card">
+                                <label>Время срабатывания</label>
+                                <input type="number" class="form-input" value="100" min="10" max="5000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Adjustable Parameters -->
+        <section class="parameters-section">
+            <div class="section-header">
+                <h2>Настраиваемые параметры</h2>
+                <div class="parameters-controls">
+                    <div class="address-control">
+                        <label for="deviceAddress">Адрес:</label>
+                        <div class="input-with-spinner">
+                            <input type="number" id="deviceAddress" class="form-input" value="1" min="1" max="247">
+                            <div class="spinner-buttons">
+                                <button class="spinner-btn" id="addressUp">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                                <button class="spinner-btn" id="addressDown">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="writeBtn" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Записать
+                    </button>
+                    <button id="testBtn" class="btn btn-warning">
+                        <i class="fas fa-flask"></i>
+                        Тест
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test Results -->
+        <section class="results-section">
+            <div class="section-header">
+                <h2>Результаты теста</h2>
+            </div>
+            <div class="results-table">
+                <div class="table-header">
+                    <div class="table-cell">Адрес</div>
+                    <div class="table-cell">Эл. Питание</div>
+                    <div class="table-cell">Состояние входа</div>
+                    <div class="table-cell">Температура</div>
+                    <div class="table-cell">Статус</div>
+                </div>
+                <div class="table-body" id="testResults">
+                    <div class="table-row">
+                        <div class="table-cell">1</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-circle"></i>
+                                Неактивно
+                            </div>
+                        </div>
+                        <div class="table-cell">--°C</div>
+                        <div class="table-cell">
+                            <span class="status-badge offline">Ошибка</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Log Modal -->
+    <div id="logModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Лог коммуникации</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="logContent" class="log-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="clearLogBtn" class="btn btn-secondary">Очистить</button>
+                <button id="exportLogBtn" class="btn btn-primary">Экспорт</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

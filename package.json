@@ -1,0 +1,33 @@
+{
+  "name": "rs485-adjuster",
+  "version": "1.0.0",
+  "description": "RS485 Device Configuration Tool",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder"
+  },
+  "keywords": ["rs485", "serial", "configuration", "electron"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
+  },
+  "build": {
+    "appId": "com.example.rs485-adjuster",
+    "productName": "RS485 Adjuster",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules",
+      "node_modules/serialport/**/*"
+    ]
+  }
+}
