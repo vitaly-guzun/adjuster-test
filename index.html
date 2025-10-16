@@ -113,26 +113,10 @@
                     <div id="am8" class="tab-panel">
                         <div class="panel-header">
                             <h3>Настройки AM8 модуля</h3>
-                            <p>Конфигурация 8-канального аналогового модуля</p>
                         </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Канал 1</label>
-                                <select class="form-select">
-                                    <option>Отключен</option>
-                                    <option>0-10V</option>
-                                    <option>4-20mA</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Канал 2</label>
-                                <select class="form-select">
-                                    <option>Отключен</option>
-                                    <option>0-10V</option>
-                                    <option>4-20mA</option>
-                                </select>
-                            </div>
-                        </div>
+                        
+
+
                     </div>
 
                     <div id="pm" class="tab-panel">
@@ -223,28 +207,46 @@
             <div class="section-header">
                 <h2>Настраиваемые параметры</h2>
                 <div class="parameters-controls">
-                    <div class="address-control">
-                        <label for="deviceAddress">Адрес:</label>
-                        <div class="input-with-spinner">
-                            <input type="number" id="deviceAddress" class="form-input" value="1" min="1" max="247">
-                            <div class="spinner-buttons">
-                                <button class="spinner-btn" id="addressUp">
-                                    <i class="fas fa-chevron-up"></i>
-                                </button>
-                                <button class="spinner-btn" id="addressDown">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
+                    <div class="address-grid">
+                        <div class="address-field">
+                            <label for="address1">Адрес 1:</label>
+                            <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address2">Адрес 2:</label>
+                            <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address3">Адрес 3:</label>
+                            <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address4">Адрес 4:</label>
+                            <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address5">Адрес 5:</label>
+                            <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address6">Адрес 6:</label>
+                            <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address7">Адрес 7:</label>
+                            <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
+                        </div>
+                        <div class="address-field">
+                            <label for="address8">Адрес 8:</label>
+                            <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
                         </div>
                     </div>
-                    <button id="writeBtn" class="btn btn-success">
-                        <i class="fas fa-save"></i>
-                        Записать
-                    </button>
-                    <button id="testBtn" class="btn btn-warning">
-                        <i class="fas fa-flask"></i>
-                        Тест
-                    </button>
+                    <div class="buttons-container">
+                        <button id="writeBtn" class="btn btn-success">
+                            <i class="fas fa-save"></i>
+                            Записать
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -253,14 +255,19 @@
         <section class="results-section">
             <div class="section-header">
                 <h2>Результаты теста</h2>
+                <div class="autorequest-control">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autorequestCheckbox">
+                        <span class="checkmark"></span>
+                        Автозапрос
+                    </label>
+                </div>
             </div>
             <div class="results-table">
                 <div class="table-header">
                     <div class="table-cell">Адрес</div>
                     <div class="table-cell">Эл. Питание</div>
                     <div class="table-cell">Состояние входа</div>
-                    <div class="table-cell">Температура</div>
-                    <div class="table-cell">Статус</div>
                 </div>
                 <div class="table-body" id="testResults">
                     <div class="table-row">
@@ -272,14 +279,107 @@
                             </div>
                         </div>
                         <div class="table-cell">
-                            <div class="status-indicator offline">
-                                <i class="fas fa-circle"></i>
-                                Неактивно
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
                             </div>
                         </div>
-                        <div class="table-cell">--°C</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">2</div>
                         <div class="table-cell">
-                            <span class="status-badge offline">Ошибка</span>
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator normal">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">3</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator closed">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">4</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">5</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">6</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">7</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row">
+                        <div class="table-cell">8</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

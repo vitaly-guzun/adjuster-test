@@ -9,10 +9,10 @@ let parser = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    minWidth: 800,
-    minHeight: 600,
+    width: 1500,
+    height: 1050,
+    minWidth: 1200,
+    minHeight: 900,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

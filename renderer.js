@@ -28,10 +28,9 @@ class RS485Adjuster {
         this.addressUpBtn = document.getElementById('addressUp');
         this.addressDownBtn = document.getElementById('addressDown');
         this.writeBtn = document.getElementById('writeBtn');
-        this.testBtn = document.getElementById('testBtn');
         
         // Check if elements exist
-        if (!this.writeBtn || !this.testBtn) {
+        if (!this.writeBtn) {
             console.error('Required buttons not found');
         }
 
@@ -42,6 +41,7 @@ class RS485Adjuster {
 
         // Results elements
         this.testResults = document.getElementById('testResults');
+
 
         // Modal elements
         this.logModal = document.getElementById('logModal');
@@ -77,7 +77,6 @@ class RS485Adjuster {
 
         // Action button events
         this.writeBtn.addEventListener('click', () => this.writeParameters());
-        this.testBtn.addEventListener('click', () => this.testDevice());
 
         // Tab events
         this.tabs.forEach(tab => {
@@ -272,36 +271,6 @@ class RS485Adjuster {
         }
     }
 
-    async testDevice() {
-        if (!this.isConnected) {
-            this.showToast('warning', 'Сначала подключитесь к устройству');
-            return;
-        }
-
-        try {
-            this.showLoading(this.testBtn);
-            this.testBtn.disabled = true;
-
-            const result = await ipcRenderer.invoke('test-device', this.deviceAddress);
-
-            if (result.success) {
-                this.showToast('info', 'Тест запущен...');
-                this.logMessage(`Тест устройства адрес ${this.deviceAddress}`);
-                
-                // Симуляция результата теста через 2 секунды
-                setTimeout(() => {
-                    this.updateTestResults();
-                }, 2000);
-            } else {
-                this.showToast('error', 'Ошибка теста: ' + result.message);
-            }
-        } catch (error) {
-            this.showToast('error', 'Ошибка теста: ' + error.message);
-        } finally {
-            this.hideLoading(this.testBtn);
-            this.testBtn.disabled = false;
-        }
-    }
 
     getCurrentParameters(panel) {
         const parameters = {};
@@ -460,6 +429,7 @@ class RS485Adjuster {
             this.toast.classList.remove('show');
         }, 4000);
     }
+
 }
 
 // Инициализация приложения
@@ -481,9 +451,4 @@ document.addEventListener('keydown', (e) => {
         document.getElementById('openLogBtn').click();
     }
     
-    // F5 - тест устройства
-    if (e.key === 'F5') {
-        e.preventDefault();
-        document.getElementById('testBtn').click();
-    }
 });

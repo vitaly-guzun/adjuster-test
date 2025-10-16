@@ -776,3 +776,269 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* AM8 Module Specific Styles */
+.section-subheader {
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-subheader h4 {
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.channels-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.channels-table .table-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 600;
+    display: grid;
+    grid-template-columns: 80px 120px 100px 80px 100px;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.channels-table .table-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.channels-table .table-row {
+    display: grid;
+    grid-template-columns: 80px 120px 100px 80px 100px;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.channels-table .table-row:hover {
+    background-color: #f8f9fa;
+}
+
+.channels-table .table-row:last-child {
+    border-bottom: none;
+}
+
+.channels-table .table-cell {
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+.channel-value {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.channel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.channel-status.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.channel-status.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.channel-status.error {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Parameter card enhancements for AM8 */
+.param-card[data-channel] {
+    position: relative;
+}
+
+.param-card[data-channel]:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 0 8px 8px 0;
+}
+
+/* Button styles for AM8 actions */
+#calibrateAm8, #resetAm8 {
+    width: 100%;
+    justify-content: center;
+}
+
+#calibrateAm8:hover {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    transform: translateY(-1px);
+}
+
+#resetAm8:hover {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    transform: translateY(-1px);
+}
+
+/* Address Grid Styles */
+.address-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.address-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.address-field label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.address-field input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.address-field input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.buttons-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Input Status Indicators */
+.input-status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.status-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.input-status-indicator.no-data .status-dot {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.input-status-indicator.normal .status-dot {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
+
+.input-status-indicator.closed .status-dot {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Hover effects for status indicators */
+.input-status-indicator:hover .status-dot {
+    transform: scale(1.1);
+}
+
+.input-status-indicator.normal:hover .status-dot {
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+}
+
+.input-status-indicator.closed:hover .status-dot {
+    box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
+}
+
+/* Autorequest Control Styles */
+.autorequest-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.autorequest-control .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #495057;
+    transition: color 0.2s ease;
+}
+
+.autorequest-control .checkbox-label:hover {
+    color: #667eea;
+}
+
+.autorequest-control input[type="checkbox"] {
+    display: none;
+}
+
+.autorequest-control .checkmark {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.autorequest-control input[type="checkbox"]:checked + .checkmark {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.autorequest-control input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.autorequest-control .checkmark:hover {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
