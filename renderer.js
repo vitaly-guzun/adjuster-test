@@ -45,6 +45,7 @@ class RS485Adjuster {
 
         // Results elements
         this.testResults = document.getElementById('testResults');
+        this.thirdColumnHeader = document.getElementById('thirdColumnHeader');
 
 
         // Modal elements
@@ -66,6 +67,9 @@ class RS485Adjuster {
             // Special handling for 'am' tab which should use 'am1-active'
             const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
             document.body.classList.add(bodyClass);
+            
+            // Update third column header for initial tab
+            this.updateThirdColumnHeader(tabName);
         }
     }
 
@@ -266,6 +270,24 @@ class RS485Adjuster {
             // Special handling for 'am' tab which should use 'am1-active'
             const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
             document.body.classList.add(bodyClass);
+            
+            // Update third column header based on active tab
+            this.updateThirdColumnHeader(tabName);
+        }
+    }
+
+    updateThirdColumnHeader(tabName) {
+        if (this.thirdColumnHeader) {
+            // Для вкладок АМ1 и АМ8 - "Состояние входа"
+            // Для вкладки РМ - "Состояние реле"
+            if (tabName === 'am' || tabName === 'am8') {
+                this.thirdColumnHeader.textContent = 'Состояние входа';
+            } else if (tabName === 'pm') {
+                this.thirdColumnHeader.textContent = 'Состояние реле';
+            } else {
+                // Для остальных вкладок оставляем "Состояние входа" по умолчанию
+                this.thirdColumnHeader.textContent = 'Состояние входа';
+            }
         }
     }
 
