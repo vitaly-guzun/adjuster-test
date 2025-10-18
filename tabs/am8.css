@@ -1,0 +1,157 @@
+/* AM8 Tab Specific Styles */
+
+/* AM8 Tab Panel */
+#am8 {
+    /* Inherit base styles from main CSS */
+}
+
+/* AM8 specific parameter cards */
+#am8 .param-card {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+    border-left: 4px solid #4caf50;
+}
+
+#am8 .param-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(76, 175, 80, 0.2);
+}
+
+/* AM8 channels table enhancements */
+#am8 .channels-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+#am8 .channels-table .table-header {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: white;
+    font-weight: 600;
+    display: grid;
+    grid-template-columns: 80px 120px 100px 80px 100px;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+#am8 .channels-table .table-body {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#am8 .channels-table .table-row {
+    display: grid;
+    grid-template-columns: 80px 120px 100px 80px 100px;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+#am8 .channels-table .table-row:hover {
+    background-color: #f8f9fa;
+}
+
+#am8 .channels-table .table-row:last-child {
+    border-bottom: none;
+}
+
+#am8 .channels-table .table-cell {
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+/* AM8 channel status indicators */
+#am8 .channel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+#am8 .channel-status.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+#am8 .channel-status.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+#am8 .channel-status.error {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* AM8 channel values */
+#am8 .channel-value {
+    font-weight: 600;
+    color: #4caf50;
+}
+
+/* AM8 input focus states */
+#am8 .form-input:focus,
+#am8 .form-select:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* AM8 specific animations */
+#am8 .param-card {
+    animation: slideInFromRight 0.5s ease-out;
+}
+
+#am8 .channels-table .table-row {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* AM8 loading states */
+#am8 .loading {
+    border-top-color: #4caf50;
+}
+
+/* AM8 responsive adjustments */
+@media (max-width: 768px) {
+    #am8 .channels-table .table-header,
+    #am8 .channels-table .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    #am8 .channels-table .table-cell {
+        border-bottom: 1px solid #e9ecef;
+        padding: 0.5rem;
+    }
+    
+    #am8 .channels-table .table-cell:last-child {
+        border-bottom: none;
+    }
+}

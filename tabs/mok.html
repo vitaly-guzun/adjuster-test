@@ -1,0 +1,158 @@
+<!-- MOK Tab Template -->
+<div class="tab-panel" id="mok">
+    <div class="panel-header">
+        <h3>Настройки MOK модуля</h3>
+        <p>Конфигурация модуля управления клапанами</p>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Типы клапанов</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="mok-valve1-type">Клапан 1 - Тип</label>
+            <select id="mok-valve1-type" class="form-select">
+                <option value="electromagnetic">Электромагнитный</option>
+                <option value="pneumatic">Пневматический</option>
+                <option value="hydraulic">Гидравлический</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="mok-valve1-response-time">Клапан 1 - Время срабатывания (мс)</label>
+            <input type="number" id="mok-valve1-response-time" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card">
+            <label for="mok-valve2-type">Клапан 2 - Тип</label>
+            <select id="mok-valve2-type" class="form-select">
+                <option value="electromagnetic">Электромагнитный</option>
+                <option value="pneumatic">Пневматический</option>
+                <option value="hydraulic">Гидравлический</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="mok-valve2-response-time">Клапан 2 - Время срабатывания (мс)</label>
+            <input type="number" id="mok-valve2-response-time" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card">
+            <label for="mok-valve3-type">Клапан 3 - Тип</label>
+            <select id="mok-valve3-type" class="form-select">
+                <option value="electromagnetic">Электромагнитный</option>
+                <option value="pneumatic">Пневматический</option>
+                <option value="hydraulic">Гидравлический</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="mok-valve3-response-time">Клапан 3 - Время срабатывания (мс)</label>
+            <input type="number" id="mok-valve3-response-time" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card">
+            <label for="mok-valve4-type">Клапан 4 - Тип</label>
+            <select id="mok-valve4-type" class="form-select">
+                <option value="electromagnetic">Электромагнитный</option>
+                <option value="pneumatic">Пневматический</option>
+                <option value="hydraulic">Гидравлический</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="mok-valve4-response-time">Клапан 4 - Время срабатывания (мс)</label>
+            <input type="number" id="mok-valve4-response-time" class="form-input" value="100" min="10" max="5000">
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Управление клапанами</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label>Клапан 1</label>
+            <div class="valve-controls">
+                <button id="mok-valve1-open" class="btn btn-success">
+                    <i class="fas fa-arrow-up"></i>
+                    Открыть
+                </button>
+                <button id="mok-valve1-close" class="btn btn-secondary">
+                    <i class="fas fa-arrow-down"></i>
+                    Закрыть
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Клапан 2</label>
+            <div class="valve-controls">
+                <button id="mok-valve2-open" class="btn btn-success">
+                    <i class="fas fa-arrow-up"></i>
+                    Открыть
+                </button>
+                <button id="mok-valve2-close" class="btn btn-secondary">
+                    <i class="fas fa-arrow-down"></i>
+                    Закрыть
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Клапан 3</label>
+            <div class="valve-controls">
+                <button id="mok-valve3-open" class="btn btn-success">
+                    <i class="fas fa-arrow-up"></i>
+                    Открыть
+                </button>
+                <button id="mok-valve3-close" class="btn btn-secondary">
+                    <i class="fas fa-arrow-down"></i>
+                    Закрыть
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Клапан 4</label>
+            <div class="valve-controls">
+                <button id="mok-valve4-open" class="btn btn-success">
+                    <i class="fas fa-arrow-up"></i>
+                    Открыть
+                </button>
+                <button id="mok-valve4-close" class="btn btn-secondary">
+                    <i class="fas fa-arrow-down"></i>
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Автоматическое управление</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="mok-auto-mode">Режим автоматики</label>
+            <select id="mok-auto-mode" class="form-select">
+                <option value="disabled">Отключен</option>
+                <option value="sequence">Последовательный</option>
+                <option value="parallel">Параллельный</option>
+                <option value="conditional">Условный</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="mok-sequence-time">Время последовательности (с)</label>
+            <input type="number" id="mok-sequence-time" class="form-input" value="10" min="1" max="300">
+        </div>
+        <div class="param-card">
+            <label for="mok-safety-limit">Предел безопасности (%)</label>
+            <input type="number" id="mok-safety-limit" class="form-input" value="90" min="0" max="100">
+        </div>
+        <div class="param-card">
+            <label>Действия</label>
+            <div class="mok-controls">
+                <button id="mok-start-sequence" class="btn btn-primary">
+                    <i class="fas fa-play"></i>
+                    Запустить
+                </button>
+                <button id="mok-stop-sequence" class="btn btn-warning">
+                    <i class="fas fa-stop"></i>
+                    Остановить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -17,10 +17,6 @@
                     <i class="fas fa-cogs"></i>
                     <span>RS485 Adjuster</span>
                 </div>
-                <div class="connection-status" id="connectionStatus">
-                    <i class="fas fa-circle status-indicator"></i>
-                    <span>Отключено</span>
-                </div>
             </div>
         </header>
 
@@ -74,7 +70,7 @@
         <section class="tabs-section">
             <div class="tabs-container">
                 <div class="tabs">
-                    <button class="tab active" data-tab="am">
+                    <button class="tab active" data-tab="am1">
                         <i class="fas fa-microchip"></i>
                         AM1
                     </button>
@@ -101,93 +97,11 @@
                 </div>
 
                 <div class="tab-content">
-                    <div id="am" class="tab-panel active">
-                        <div class="panel-header">
-                            <h3>Настройки AM1 модуля</h3>
-                        </div>
-                        <div class="parameters-grid">
-                            <!-- Параметры AM1 модуля будут добавлены здесь -->
-                        </div>
-                    </div>
-
-                    <div id="am8" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки AM8 модуля</h3>
-                        </div>
-                        
-
-
-                    </div>
-
-                    <div id="pm" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки PM модуля</h3>
-                        </div>
-                        <div class="parameters-grid">
-                            <!-- Параметры PM модуля будут добавлены здесь -->
-                        </div>
-                    </div>
-
-                    <div id="kl" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки КЛ модуля</h3>
-                            <p>Конфигурация коммуникационного модуля</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Протокол</label>
-                                <select class="form-select">
-                                    <option>Modbus RTU</option>
-                                    <option>Modbus ASCII</option>
-                                    <option>Profinet</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Адрес устройства</label>
-                                <input type="number" class="form-input" value="1" min="1" max="247">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="sensors" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки датчиков СГ</h3>
-                            <p>Конфигурация датчиков системы газоанализа</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Тип датчика</label>
-                                <select class="form-select">
-                                    <option>Датчик CO</option>
-                                    <option>Датчик CH4</option>
-                                    <option>Датчик O2</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Диапазон измерения</label>
-                                <input type="text" class="form-input" value="0-1000 ppm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="mok" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки MOK модуля</h3>
-                            <p>Конфигурация модуля управления клапанами</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Тип клапана</label>
-                                <select class="form-select">
-                                    <option>Электромагнитный</option>
-                                    <option>Пневматический</option>
-                                    <option>Гидравлический</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Время срабатывания</label>
-                                <input type="number" class="form-input" value="100" min="10" max="5000">
-                            </div>
+                    <!-- Tab panels will be loaded dynamically from tabs/ directory -->
+                    <div id="tab-loading" class="tab-loading">
+                        <div class="loading-spinner">
+                            <div class="loading"></div>
+                            <p>Загрузка вкладки...</p>
                         </div>
                     </div>
                 </div>
@@ -204,6 +118,13 @@
                         <div class="address-field am1-only">
                             <label for="address1">Адрес:</label>
                             <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <!-- Кнопка для AM1 (внутри grid) -->
+                        <div class="am1-button-container am1-only">
+                            <button id="writeBtn" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Записать
+                            </button>
                         </div>
                         <!-- Поля для AM8 (8-канальное устройство) -->
                         <div class="address-field am8-only">
@@ -238,6 +159,13 @@
                             <label for="address8">Адрес 8:</label>
                             <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
                         </div>
+                        <!-- Кнопка для AM8 (внутри grid) -->
+                        <div class="am8-button-container am8-only">
+                            <button id="writeBtnAm8" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Записать
+                            </button>
+                        </div>
                         <!-- Поля для PM (4-канальный релейный модуль) -->
                         <div class="address-field pm-only">
                             <label for="pm-address1">Адрес 1:</label>
@@ -263,15 +191,22 @@
                                 Записать
                             </button>
                         </div>
+                        
+                        <!-- Поле для КЛ (одноканальное устройство) -->
+                        <div class="address-field kl-only">
+                            <label for="kl-address">Адрес:</label>
+                            <input type="number" id="kl-address" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <!-- Кнопка для КЛ (внутри grid) -->
+                        <div class="kl-button-container kl-only">
+                            <button id="writeBtnKl" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Записать
+                            </button>
+                        </div>
                     </div>
                     
-                    <!-- Кнопка Записать для всех вкладок -->
-                    <div class="buttons-container">
-                        <button id="writeBtn" class="btn btn-success">
-                            <i class="fas fa-save"></i>
-                            Записать
-                        </button>
-                    </div>
+                    <!-- All buttons are now inside their respective grid containers -->
                 </div>
             </div>
         </section>
@@ -479,6 +414,22 @@
                         <div class="table-cell">
                             <div class="relay-status-indicator no-data">
                                 <div class="relay-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Строка для КЛ (одноканальное устройство) -->
+                    <div class="table-row kl-only">
+                        <div class="table-cell">1</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,142 @@
+/* KL Tab Specific Styles */
+
+/* KL Tab Panel */
+#kl {
+    /* Inherit base styles from main CSS */
+}
+
+/* KL specific parameter cards */
+#kl .param-card {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1f5fe 100%);
+    border-left: 4px solid #9c27b0;
+}
+
+#kl .param-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(156, 39, 176, 0.2);
+}
+
+/* KL protocol selection */
+#kl .form-select {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+#kl .form-select:focus {
+    outline: none;
+    border-color: #9c27b0;
+    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
+}
+
+/* KL network settings section */
+#kl .section-subheader {
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+#kl .section-subheader h4 {
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* KL IP address inputs */
+#kl input[type="text"] {
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+#kl input[type="text"]:focus {
+    outline: none;
+    border-color: #9c27b0;
+    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
+    background: white;
+}
+
+/* KL input focus states */
+#kl .form-input:focus {
+    border-color: #9c27b0;
+    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
+}
+
+/* KL specific animations */
+#kl .param-card {
+    animation: slideInFromTop 0.5s ease-out;
+}
+
+#kl .section-subheader {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* KL loading states */
+#kl .loading {
+    border-top-color: #9c27b0;
+}
+
+/* KL status indicators */
+#kl .status-indicator {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* KL specific styles removed - now handled in main styles.css */
+
+/* KL responsive adjustments */
+@media (max-width: 768px) {
+    #kl .parameters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    #kl .form-select {
+        min-width: 100%;
+    }
+    
+    #kl input[type="text"] {
+        font-size: 0.9rem;
+    }
+    
+    .kl-address-field,
+    .kl-button-container {
+        padding: 1rem;
+    }
+}

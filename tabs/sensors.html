@@ -1,0 +1,116 @@
+<!-- Sensors Tab Template -->
+<div class="tab-panel" id="sensors">
+    <div class="panel-header">
+        <h3>Настройки датчиков СГ</h3>
+        <p>Конфигурация датчиков системы газоанализа</p>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Основные датчики</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="sensor-co-type">Датчик CO</label>
+            <select id="sensor-co-type" class="form-select">
+                <option value="electrochemical">Электрохимический</option>
+                <option value="infrared">Инфракрасный</option>
+                <option value="catalytic">Каталитический</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="sensor-co-range">Диапазон CO (ppm)</label>
+            <input type="text" id="sensor-co-range" class="form-input" value="0-1000" placeholder="0-1000">
+        </div>
+        <div class="param-card">
+            <label for="sensor-ch4-type">Датчик CH4</label>
+            <select id="sensor-ch4-type" class="form-select">
+                <option value="infrared">Инфракрасный</option>
+                <option value="catalytic">Каталитический</option>
+                <option value="semiconductor">Полупроводниковый</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="sensor-ch4-range">Диапазон CH4 (ppm)</label>
+            <input type="text" id="sensor-ch4-range" class="form-input" value="0-10000" placeholder="0-10000">
+        </div>
+        <div class="param-card">
+            <label for="sensor-o2-type">Датчик O2</label>
+            <select id="sensor-o2-type" class="form-select">
+                <option value="electrochemical">Электрохимический</option>
+                <option value="zirconia">Циркониевый</option>
+                <option value="paramagnetic">Парамагнитный</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="sensor-o2-range">Диапазон O2 (%)</label>
+            <input type="text" id="sensor-o2-range" class="form-input" value="0-25" placeholder="0-25">
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Калибровка датчиков</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="calibration-gas-co">Калибровочный газ CO (ppm)</label>
+            <input type="number" id="calibration-gas-co" class="form-input" value="100" min="0" max="1000">
+        </div>
+        <div class="param-card">
+            <label for="calibration-gas-ch4">Калибровочный газ CH4 (ppm)</label>
+            <input type="number" id="calibration-gas-ch4" class="form-input" value="1000" min="0" max="10000">
+        </div>
+        <div class="param-card">
+            <label for="calibration-gas-o2">Калибровочный газ O2 (%)</label>
+            <input type="number" id="calibration-gas-o2" class="form-input" value="20.9" min="0" max="25" step="0.1">
+        </div>
+        <div class="param-card">
+            <label>Действия</label>
+            <div class="sensor-controls">
+                <button id="calibrate-all-sensors" class="btn btn-primary">
+                    <i class="fas fa-cog"></i>
+                    Калибровать все
+                </button>
+                <button id="reset-sensors" class="btn btn-warning">
+                    <i class="fas fa-undo"></i>
+                    Сбросить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Индикаторы состояния</h4>
+    </div>
+    
+    <div class="sensors-connection-indicators">
+        <div class="sensor-indicator">
+            <div class="sensor-icon">
+                <i class="fas fa-wind"></i>
+            </div>
+            <div class="sensor-info">
+                <div class="sensor-name">CO Датчик</div>
+                <div class="sensor-status online">Подключен</div>
+            </div>
+        </div>
+        <div class="sensor-indicator">
+            <div class="sensor-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="sensor-info">
+                <div class="sensor-name">CH4 Датчик</div>
+                <div class="sensor-status offline">Отключен</div>
+            </div>
+        </div>
+        <div class="sensor-indicator">
+            <div class="sensor-icon">
+                <i class="fas fa-lungs"></i>
+            </div>
+            <div class="sensor-info">
+                <div class="sensor-name">O2 Датчик</div>
+                <div class="sensor-status online">Подключен</div>
+            </div>
+        </div>
+    </div>
+</div>

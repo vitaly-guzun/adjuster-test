@@ -1,0 +1,209 @@
+/* MOK Tab Specific Styles */
+
+/* MOK Tab Panel */
+#mok {
+    /* Inherit base styles from main CSS */
+}
+
+/* MOK specific parameter cards */
+#mok .param-card {
+    background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+    border-left: 4px solid #e91e63;
+}
+
+#mok .param-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(233, 30, 99, 0.2);
+}
+
+/* MOK valve control buttons */
+#mok .valve-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#mok .valve-controls .btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+#mok .valve-controls .btn-success {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    border: none;
+    color: white;
+}
+
+#mok .valve-controls .btn-success:hover {
+    background: linear-gradient(135deg, #388e3c, #2e7d32);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+#mok .valve-controls .btn-secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    border: none;
+    color: white;
+}
+
+#mok .valve-controls .btn-secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #495057);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+}
+
+/* MOK automation controls */
+#mok .mok-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#mok .mok-controls .btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+#mok .mok-controls .btn-primary {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    border: none;
+    color: white;
+}
+
+#mok .mok-controls .btn-primary:hover {
+    background: linear-gradient(135deg, #c2185b, #ad1457);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.3);
+}
+
+#mok .mok-controls .btn-warning {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border: none;
+    color: white;
+}
+
+#mok .mok-controls .btn-warning:hover {
+    background: linear-gradient(135deg, #f57c00, #ef6c00);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+}
+
+/* MOK valve status indicators */
+#mok .valve-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+#mok .valve-status.open {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+#mok .valve-status.closed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+#mok .valve-status.error {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* MOK input focus states */
+#mok .form-input:focus,
+#mok .form-select:focus {
+    border-color: #e91e63;
+    box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+}
+
+/* MOK specific animations */
+#mok .param-card {
+    animation: slideInFromBottom 0.5s ease-out;
+}
+
+#mok .valve-controls .btn,
+#mok .mok-controls .btn {
+    animation: scaleIn 0.3s ease-out;
+}
+
+#mok .param-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+#mok .param-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+#mok .param-card:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* MOK loading states */
+#mok .loading {
+    border-top-color: #e91e63;
+}
+
+/* MOK status indicators */
+#mok .status-indicator {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* MOK responsive adjustments */
+@media (max-width: 768px) {
+    #mok .parameters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    #mok .valve-controls,
+    #mok .mok-controls {
+        flex-direction: column;
+    }
+    
+    #mok .valve-controls .btn,
+    #mok .mok-controls .btn {
+        width: 100%;
+    }
+}

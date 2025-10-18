@@ -30,7 +30,7 @@ body {
 
 .header-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
@@ -53,34 +53,7 @@ body {
     background-clip: text;
 }
 
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #dc3545;
-    animation: pulse 2s infinite;
-}
-
-.status-indicator.connected {
-    background: #28a745;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
+/* Connection status styles removed - no longer needed */
 
 /* Section Styles */
 .connection-section,
@@ -360,7 +333,7 @@ body {
     padding: 2rem;
     border-bottom: 1px solid #e9ecef;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
@@ -386,7 +359,7 @@ body {
 }
 
 .buttons-container {
-    display: grid;
+    display: none; /* Hidden by default - only shown where needed */
     grid-template-rows: 1fr 1fr;
     gap: 1.5rem;
     align-items: center;
@@ -419,7 +392,9 @@ body {
 .parameters-controls {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 1.5rem;
+    width: 100%;
 }
 
 .address-control {
@@ -740,6 +715,7 @@ body {
     }
     
     .buttons-container {
+        display: none; /* Hidden by default - only shown where needed */
         grid-template-rows: auto auto;
         height: auto;
         gap: 1rem;
@@ -775,6 +751,70 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Tab Loading Styles */
+.tab-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #6c757d;
+}
+
+.loading-spinner .loading {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+    margin-bottom: 1rem;
+}
+
+.loading-spinner p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Tab Error Styles */
+.tab-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    color: #6c757d;
+    max-width: 400px;
+}
+
+.error-content i {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.error-content h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.error-content p {
+    margin-bottom: 0.5rem;
+}
+
+.error-details {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-bottom: 1.5rem !important;
 }
 
 /* AM8 Module Specific Styles */
@@ -936,7 +976,7 @@ body {
 }
 
 .buttons-container {
-    display: flex;
+    display: none; /* Hidden by default - only shown where needed */
     gap: 1rem;
     justify-content: center;
     margin-top: 1rem;
@@ -1063,9 +1103,11 @@ body.am8-active .address-field.am8-only {
 
 /* Adjust grid layout for AM1 (single field) */
 body.am1-active .address-grid {
-    grid-template-columns: auto;
-    grid-template-rows: auto;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
 }
 
 /* Keep 4x2 grid for AM8 */
@@ -1101,6 +1143,28 @@ body.pm-active .address-field.pm-only {
     display: flex;
 }
 
+/* KL fields visibility */
+.address-field.kl-only {
+    display: none;
+}
+
+body.kl-active .address-field.kl-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.kl-button-container {
+    display: none;
+}
+
+body.kl-active .kl-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
 /* Adjust grid layout for PM (4 fields in 4x1 grid, shifted left) */
 body.pm-active .address-grid {
     grid-template-columns: auto auto auto auto;
@@ -1127,14 +1191,7 @@ body.am8-active .address-grid {
     grid-template-rows: auto auto;
 }
 
-body.am1-active .buttons-container,
-body.am8-active .buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 1rem;
-}
+/* AM8 buttons-container removed - using am8-button-container inside grid */
 
 /* PM tab specific positioning */
 body.pm-active .parameters-controls {
@@ -1179,22 +1236,47 @@ body.pm-active #writeBtnPm {
     flex-shrink: 0 !important;
 }
 
-/* Button styles for different tabs */
-body.am1-active .buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 1rem;
+/* Button styles for different tabs - all buttons are now inside grid containers */
+
+/* Hide general buttons-container for KL tab */
+
+/* AM1 button container inside grid */
+.am1-button-container {
+    display: none;
 }
 
-body.am8-active .buttons-container {
+body.am1-active .am1-button-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    margin-top: 1rem;
+    height: 100%;
 }
+
+/* Ensure AM1 address field and button have same height */
+body.am1-active .address-field.am1-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+}
+
+body.am1-active .address-field.am1-only input {
+    height: 48px;
+}
+
+/* AM8 button container inside grid */
+.am8-button-container {
+    display: none;
+}
+
+body.am8-active .am8-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+/* AM8 buttons-container removed - using am8-button-container inside grid */
 
 /* Hide PM button on AM1 and AM8 tabs */
 body.am1-active .pm-button-container,
@@ -1229,6 +1311,48 @@ body.pm-active #writeBtn {
 body.pm-active .table-row.pm-only {
     display: grid;
 }
+
+/* KL table row visibility */
+.table-row.kl-only {
+    display: none;
+}
+
+body.kl-active .table-row.kl-only {
+    display: grid;
+}
+
+/* KL button container styles */
+body.kl-active .buttons-container {
+    display: none !important;
+}
+
+/* Additional rule to ensure buttons-container is hidden on KL tab */
+.kl-active .buttons-container {
+    display: none !important;
+}
+
+/* Show parameters and results sections for KL tab */
+body.kl-active .parameters-section {
+    display: block !important;
+}
+
+body.kl-active .results-section {
+    display: block !important;
+}
+
+/* Duplicate rule removed - already defined above */
+
+/* KL address grid layout - same as AM1 */
+body.kl-active .address-grid {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* Duplicate rule removed - already defined above */
 
 /* Relay Status Indicators */
 .relay-status-indicator {
@@ -1276,3 +1400,18 @@ body.pm-active .table-row.pm-only {
 .relay-status-indicator.closed:hover .relay-dot {
     box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
 }
+
+/* AM8 buttons container */
+.am8-buttons-container {
+    display: none;
+}
+
+body.am8-active .am8-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* All button containers removed - buttons are now inside grid containers */

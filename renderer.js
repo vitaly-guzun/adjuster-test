@@ -8,13 +8,15 @@ class RS485Adjuster {
         this.deviceAddress = 1;
         this.logData = [];
         this.writeLogEnabled = false;
+        this.loadedTabs = new Map(); // Cache for loaded tab templates
+        this.currentTab = 'am1'; // Default tab
         
         this.initializeElements();
         this.bindEvents();
         this.loadAvailablePorts();
         
-        // Initialize active tab class
-        this.initializeActiveTab();
+        // Load initial tab
+        this.loadTab('am1');
     }
 
     initializeElements() {
@@ -24,29 +26,14 @@ class RS485Adjuster {
         this.connectBtn = document.getElementById('connectBtn');
         this.writeLogCheckbox = document.getElementById('writeLog');
         this.openLogBtn = document.getElementById('openLogBtn');
-        this.connectionStatus = document.getElementById('connectionStatus');
-
-        // Parameter elements
-        this.deviceAddressInput = document.getElementById('deviceAddress');
-        this.addressUpBtn = document.getElementById('addressUp');
-        this.addressDownBtn = document.getElementById('addressDown');
-        this.writeBtn = document.getElementById('writeBtn');
-        this.writeBtnPm = document.getElementById('writeBtnPm');
-        
-        // Check if elements exist
-        if (!this.writeBtn && !this.writeBtnPm) {
-            console.error('Required buttons not found');
-        }
 
         // Tab elements
         this.tabs = document.querySelectorAll('.tab');
-        this.tabPanels = document.querySelectorAll('.tab-panel');
-        
+        this.tabContent = document.querySelector('.tab-content');
 
         // Results elements
         this.testResults = document.getElementById('testResults');
         this.thirdColumnHeader = document.getElementById('thirdColumnHeader');
-
 
         // Modal elements
         this.logModal = document.getElementById('logModal');
@@ -59,18 +46,161 @@ class RS485Adjuster {
         this.toast = document.getElementById('toast');
     }
 
-    initializeActiveTab() {
-        // Find the currently active tab and set body class
-        const activeTab = document.querySelector('.tab.active');
-        if (activeTab) {
-            const tabName = activeTab.dataset.tab;
-            // Special handling for 'am' tab which should use 'am1-active'
-            const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
-            document.body.classList.add(bodyClass);
+    async loadTab(tabName) {
+        try {
+            // Show loading indicator
+            this.showTabLoading();
             
-            // Update third column header for initial tab
-            this.updateThirdColumnHeader(tabName);
+            // Check if tab is already loaded
+            if (this.loadedTabs.has(tabName)) {
+                this.displayTab(tabName);
+                return;
+            }
+            
+            // Load HTML template
+            const htmlResponse = await fetch(`tabs/${tabName}.html`);
+            if (!htmlResponse.ok) {
+                throw new Error(`Failed to load ${tabName}.html`);
+            }
+            const htmlContent = await htmlResponse.text();
+            
+            // Load CSS template
+            const cssResponse = await fetch(`tabs/${tabName}.css`);
+            if (!cssResponse.ok) {
+                throw new Error(`Failed to load ${tabName}.css`);
+            }
+            const cssContent = await cssResponse.text();
+            
+            // Cache the loaded content
+            this.loadedTabs.set(tabName, {
+                html: htmlContent,
+                css: cssContent
+            });
+            
+            // Display the tab
+            this.displayTab(tabName);
+            
+        } catch (error) {
+            console.error(`Error loading tab ${tabName}:`, error);
+            this.showTabError(tabName, error.message);
         }
+    }
+    
+    displayTab(tabName) {
+        const tabData = this.loadedTabs.get(tabName);
+        if (!tabData) return;
+        
+        // Clear current content
+        this.tabContent.innerHTML = '';
+        
+        // Create container for tab content
+        const tabContainer = document.createElement('div');
+        tabContainer.innerHTML = tabData.html;
+        
+        // Add CSS styles
+        const styleElement = document.createElement('style');
+        styleElement.textContent = tabData.css;
+        styleElement.setAttribute('data-tab', tabName);
+        document.head.appendChild(styleElement);
+        
+        // Append tab content
+        this.tabContent.appendChild(tabContainer);
+        
+        // Update current tab
+        this.currentTab = tabName;
+        
+        // Reinitialize elements for the new tab
+        this.initializeTabElements();
+        
+        // Update body class
+        this.updateBodyClass(tabName);
+        
+        // Update third column header
+        this.updateThirdColumnHeader(tabName);
+    }
+    
+    showTabLoading() {
+        this.tabContent.innerHTML = `
+            <div id="tab-loading" class="tab-loading">
+                <div class="loading-spinner">
+                    <div class="loading"></div>
+                    <p>Загрузка вкладки...</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    showTabError(tabName, errorMessage) {
+        this.tabContent.innerHTML = `
+            <div class="tab-error">
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Ошибка загрузки вкладки</h3>
+                    <p>Не удалось загрузить вкладку "${tabName}"</p>
+                    <p class="error-details">${errorMessage}</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i>
+                        Перезагрузить
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    
+    initializeTabElements() {
+        // Reinitialize elements that might be in the loaded tab
+        this.writeBtn = document.getElementById('writeBtn');
+        this.writeBtnAm8 = document.getElementById('writeBtnAm8');
+        this.writeBtnPm = document.getElementById('writeBtnPm');
+        // writeBtnPmGeneral removed - PM uses only pm-button-container
+        this.writeBtnKl = document.getElementById('writeBtnKl');
+        // writeBtnKlGeneral removed - KL uses only kl-button-container
+        this.autorequestCheckboxKl = document.getElementById('autorequestCheckboxKl');
+        
+        // Bind events for new elements
+        this.bindTabEvents();
+    }
+    
+    bindTabEvents() {
+        // Bind events for tab-specific buttons
+        if (this.writeBtn) {
+            this.writeBtn.addEventListener('click', () => this.writeParameters());
+        }
+        if (this.writeBtnAm8) {
+            this.writeBtnAm8.addEventListener('click', () => this.writeParameters());
+        }
+        if (this.writeBtnPm) {
+            this.writeBtnPm.addEventListener('click', () => this.writeParameters());
+        }
+        // writeBtnPmGeneral event handler removed - button no longer exists
+        if (this.writeBtnKl) {
+            this.writeBtnKl.addEventListener('click', () => this.writeParameters());
+        }
+        // writeBtnKlGeneral event handler removed - button no longer exists
+        
+        // Bind events for KL autorequest checkbox
+        if (this.autorequestCheckboxKl) {
+            this.autorequestCheckboxKl.addEventListener('change', (e) => {
+                this.writeLogEnabled = e.target.checked;
+                this.logMessage(`Автозапрос ${this.writeLogEnabled ? 'включен' : 'отключен'}`);
+            });
+        }
+        
+        // Bind events for other tab-specific elements
+        // This can be extended for specific tab functionality
+    }
+    
+    updateBodyClass(tabName) {
+        // Remove all tab-specific body classes
+        document.body.classList.remove('am-active', 'am1-active', 'am8-active', 'pm-active', 'kl-active', 'sensors-active', 'mok-active');
+        
+        // Add new body class
+        const bodyClass = `${tabName}-active`;
+        document.body.classList.add(bodyClass);
+        
+        // Debug: log the current body classes
+        console.log('Current body classes:', document.body.className);
+        console.log('Active tab:', tabName);
     }
 
     bindEvents() {
@@ -177,7 +307,6 @@ class RS485Adjuster {
                 this.isConnected = true;
                 this.currentPort = portPath;
                 this.currentBaudRate = parseInt(baudRate);
-                this.updateConnectionStatus(true);
                 this.connectBtn.innerHTML = '<i class="fas fa-unlink"></i> Отключиться';
                 this.showToast('success', 'Подключено к ' + portPath);
                 
@@ -204,7 +333,6 @@ class RS485Adjuster {
             if (result.success) {
                 this.isConnected = false;
                 this.currentPort = null;
-                this.updateConnectionStatus(false);
                 this.connectBtn.innerHTML = '<i class="fas fa-plug"></i> Подключиться';
                 this.showToast('info', 'Отключено');
                 
@@ -219,18 +347,7 @@ class RS485Adjuster {
         }
     }
 
-    updateConnectionStatus(connected) {
-        const statusIndicator = this.connectionStatus.querySelector('.status-indicator');
-        const statusText = this.connectionStatus.querySelector('span');
-
-        if (connected) {
-            statusIndicator.classList.add('connected');
-            statusText.textContent = 'Подключено';
-        } else {
-            statusIndicator.classList.remove('connected');
-            statusText.textContent = 'Отключено';
-        }
-    }
+    // updateConnectionStatus method removed - no longer needed
 
     incrementAddress() {
         if (this.deviceAddress < 247) {
@@ -251,28 +368,16 @@ class RS485Adjuster {
     }
 
     switchTab(tabName) {
-        // Remove active class from all tabs and panels
+        // Remove active class from all tabs
         this.tabs.forEach(tab => tab.classList.remove('active'));
-        this.tabPanels.forEach(panel => panel.classList.remove('active'));
 
-        // Remove all tab-specific body classes
-        document.body.classList.remove('am-active', 'am1-active', 'am8-active', 'pm-active', 'kl-active', 'sensors-active', 'mok-active');
-
-        // Add active class to selected tab and panel
+        // Add active class to selected tab
         const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-        const selectedPanel = document.getElementById(tabName);
-        
-        if (selectedTab && selectedPanel) {
+        if (selectedTab) {
             selectedTab.classList.add('active');
-            selectedPanel.classList.add('active');
             
-            // Add body class for tab-specific styling
-            // Special handling for 'am' tab which should use 'am1-active'
-            const bodyClass = tabName === 'am' ? 'am1-active' : `${tabName}-active`;
-            document.body.classList.add(bodyClass);
-            
-            // Update third column header based on active tab
-            this.updateThirdColumnHeader(tabName);
+            // Load the tab content
+            this.loadTab(tabName);
         }
     }
 
@@ -280,7 +385,7 @@ class RS485Adjuster {
         if (this.thirdColumnHeader) {
             // Для вкладок АМ1 и АМ8 - "Состояние входа"
             // Для вкладки РМ - "Состояние реле"
-            if (tabName === 'am' || tabName === 'am8') {
+            if (tabName === 'am1' || tabName === 'am8') {
                 this.thirdColumnHeader.textContent = 'Состояние входа';
             } else if (tabName === 'pm') {
                 this.thirdColumnHeader.textContent = 'Состояние реле';
@@ -298,15 +403,27 @@ class RS485Adjuster {
         }
 
         try {
-            const activeButton = document.querySelector('.tab-panel.active').id === 'pm' ? this.writeBtnPm : this.writeBtn;
+            // Find the active write button
+            let activeButton;
+            if (this.currentTab === 'am1') {
+                activeButton = this.writeBtn;
+            } else if (this.currentTab === 'am8') {
+                activeButton = this.writeBtnAm8;
+            } else if (this.currentTab === 'pm') {
+                activeButton = this.writeBtnPm;
+            } else if (this.currentTab === 'kl') {
+                activeButton = this.writeBtnKl;
+            } else {
+                activeButton = this.writeBtn;
+            }
+            
             if (activeButton) {
                 this.showLoading(activeButton);
                 activeButton.disabled = true;
             }
 
-            // Получить текущие параметры из активной панели
-            const activePanel = document.querySelector('.tab-panel.active');
-            const parameters = this.getCurrentParameters(activePanel);
+            // Get current parameters from the active tab
+            const parameters = this.getCurrentParameters();
 
             const result = await ipcRenderer.invoke('write-parameters', this.deviceAddress, parameters);
 
@@ -319,7 +436,19 @@ class RS485Adjuster {
         } catch (error) {
             this.showToast('error', 'Ошибка записи: ' + error.message);
         } finally {
-            const activeButton = document.querySelector('.tab-panel.active').id === 'pm' ? this.writeBtnPm : this.writeBtn;
+            let activeButton;
+            if (this.currentTab === 'am1') {
+                activeButton = this.writeBtn;
+            } else if (this.currentTab === 'am8') {
+                activeButton = this.writeBtnAm8;
+            } else if (this.currentTab === 'pm') {
+                activeButton = this.writeBtnPm;
+            } else if (this.currentTab === 'kl') {
+                activeButton = this.writeBtnKl;
+            } else {
+                activeButton = this.writeBtn;
+            }
+            
             if (activeButton) {
                 this.hideLoading(activeButton);
                 activeButton.disabled = false;
@@ -328,11 +457,11 @@ class RS485Adjuster {
     }
 
 
-    getCurrentParameters(panel) {
+    getCurrentParameters() {
         const parameters = {};
         
-        // Собрать параметры из всех input и select элементов в панели
-        const inputs = panel.querySelectorAll('input, select');
+        // Collect parameters from all input and select elements in the current tab
+        const inputs = this.tabContent.querySelectorAll('input, select');
         inputs.forEach(input => {
             if (input.id || input.name) {
                 const key = input.id || input.name;
