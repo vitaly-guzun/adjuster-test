@@ -155,6 +155,7 @@ class RS485Adjuster {
         // writeBtnPmGeneral removed - PM uses only pm-button-container
         this.writeBtnKl = document.getElementById('writeBtnKl');
         // writeBtnKlGeneral removed - KL uses only kl-button-container
+        this.writeBtnSensors = document.getElementById('writeBtnSensors');
         this.autorequestCheckboxKl = document.getElementById('autorequestCheckboxKl');
         
         // Bind events for new elements
@@ -162,21 +163,27 @@ class RS485Adjuster {
     }
     
     bindTabEvents() {
-        // Bind events for tab-specific buttons
-        if (this.writeBtn) {
+        // Bind events for tab-specific buttons only once
+        if (this.writeBtn && !this.writeBtn._eventBound) {
             this.writeBtn.addEventListener('click', () => this.writeParameters());
+            this.writeBtn._eventBound = true;
         }
-        if (this.writeBtnAm8) {
+        if (this.writeBtnAm8 && !this.writeBtnAm8._eventBound) {
             this.writeBtnAm8.addEventListener('click', () => this.writeParameters());
+            this.writeBtnAm8._eventBound = true;
         }
-        if (this.writeBtnPm) {
+        if (this.writeBtnPm && !this.writeBtnPm._eventBound) {
             this.writeBtnPm.addEventListener('click', () => this.writeParameters());
+            this.writeBtnPm._eventBound = true;
         }
-        // writeBtnPmGeneral event handler removed - button no longer exists
-        if (this.writeBtnKl) {
+        if (this.writeBtnKl && !this.writeBtnKl._eventBound) {
             this.writeBtnKl.addEventListener('click', () => this.writeParameters());
+            this.writeBtnKl._eventBound = true;
         }
-        // writeBtnKlGeneral event handler removed - button no longer exists
+        if (this.writeBtnSensors && !this.writeBtnSensors._eventBound) {
+            this.writeBtnSensors.addEventListener('click', () => this.writeParameters());
+            this.writeBtnSensors._eventBound = true;
+        }
         
         // Bind events for KL autorequest checkbox
         if (this.autorequestCheckboxKl) {
@@ -185,6 +192,9 @@ class RS485Adjuster {
                 this.logMessage(`Автозапрос ${this.writeLogEnabled ? 'включен' : 'отключен'}`);
             });
         }
+        
+        // Bind events for sensor grid indicators
+        this.bindSensorIndicatorEvents();
         
         // Bind events for other tab-specific elements
         // This can be extended for specific tab functionality
@@ -201,6 +211,51 @@ class RS485Adjuster {
         // Debug: log the current body classes
         console.log('Current body classes:', document.body.className);
         console.log('Active tab:', tabName);
+    }
+
+    bindSensorIndicatorEvents() {
+        // Find all sensor indicators in the grid
+        const indicators = document.querySelectorAll('.black-circle');
+        
+        indicators.forEach(indicator => {
+            // Remove existing event listeners to prevent duplicates
+            indicator.removeEventListener('click', this.handleIndicatorClick);
+            
+            // Add click event listener
+            indicator.addEventListener('click', this.handleIndicatorClick.bind(this));
+        });
+    }
+
+    handleIndicatorClick(event) {
+        const indicator = event.target;
+        
+        // Define the cycle of states
+        const states = ['state-black', 'state-red', 'state-green', 'state-blue'];
+        
+        // Get current state
+        let currentState = '';
+        states.forEach(state => {
+            if (indicator.classList.contains(state)) {
+                currentState = state;
+            }
+        });
+        
+        // Remove all state classes
+        states.forEach(state => {
+            indicator.classList.remove(state);
+        });
+        
+        // Find next state
+        const currentIndex = states.indexOf(currentState);
+        const nextIndex = (currentIndex + 1) % states.length;
+        const nextState = states[nextIndex];
+        
+        // Add new state class
+        indicator.classList.add(nextState);
+        
+        // Optional: Log the change
+        const blockNumber = indicator.closest('.sensor-block')?.querySelector('.block-number')?.textContent;
+        console.log(`Block ${blockNumber}: Indicator state changed to ${nextState}`);
     }
 
     bindEvents() {
@@ -224,13 +279,7 @@ class RS485Adjuster {
             });
         }
 
-        // Action button events
-        if (this.writeBtn) {
-            this.writeBtn.addEventListener('click', () => this.writeParameters());
-        }
-        if (this.writeBtnPm) {
-            this.writeBtnPm.addEventListener('click', () => this.writeParameters());
-        }
+        // Action button events - moved to bindTabEvents() to avoid duplicates
 
         // Tab events
         this.tabs.forEach(tab => {
@@ -385,10 +434,13 @@ class RS485Adjuster {
         if (this.thirdColumnHeader) {
             // Для вкладок АМ1 и АМ8 - "Состояние входа"
             // Для вкладки РМ - "Состояние реле"
+            // Для датчиков СГ - "Состояние датчика"
             if (tabName === 'am1' || tabName === 'am8') {
                 this.thirdColumnHeader.textContent = 'Состояние входа';
             } else if (tabName === 'pm') {
                 this.thirdColumnHeader.textContent = 'Состояние реле';
+            } else if (tabName === 'sensors') {
+                this.thirdColumnHeader.textContent = 'Состояние датчика';
             } else {
                 // Для остальных вкладок оставляем "Состояние входа" по умолчанию
                 this.thirdColumnHeader.textContent = 'Состояние входа';
@@ -413,6 +465,8 @@ class RS485Adjuster {
                 activeButton = this.writeBtnPm;
             } else if (this.currentTab === 'kl') {
                 activeButton = this.writeBtnKl;
+            } else if (this.currentTab === 'sensors') {
+                activeButton = this.writeBtnSensors; // Sensors tab write button
             } else {
                 activeButton = this.writeBtn;
             }
@@ -445,6 +499,8 @@ class RS485Adjuster {
                 activeButton = this.writeBtnPm;
             } else if (this.currentTab === 'kl') {
                 activeButton = this.writeBtnKl;
+            } else if (this.currentTab === 'sensors') {
+                activeButton = this.writeBtnSensors; // Sensors tab write button
             } else {
                 activeButton = this.writeBtn;
             }

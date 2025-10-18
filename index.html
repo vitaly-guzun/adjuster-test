@@ -204,6 +204,51 @@
                                 Записать
                             </button>
                         </div>
+                        
+                        <!-- Поля для датчиков СГ -->
+                        <div class="address-field sensors-only">
+                            <label for="sensors-address">Адрес:</label>
+                            <input type="number" id="sensors-address" class="form-input" value="1" min="1" max="247">
+                        </div>
+                        <div class="address-field sensors-only">
+                            <label for="sensors-board-count">Количество плат:</label>
+                            <select id="sensors-board-count" class="form-select">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <div class="address-field sensors-only">
+                            <label for="sensors-power">Мощность:</label>
+                            <select id="sensors-power" class="form-select">
+                                <option value="10">10%</option>
+                                <option value="20">20%</option>
+                                <option value="30">30%</option>
+                                <option value="40">40%</option>
+                                <option value="50">50%</option>
+                                <option value="60">60%</option>
+                                <option value="70">70%</option>
+                                <option value="80">80%</option>
+                                <option value="90">90%</option>
+                                <option value="100" selected>100%</option>
+                            </select>
+                        </div>
+                        <!-- Кнопка для датчиков СГ -->
+                        <div class="sensors-button-container sensors-only">
+                            <button id="writeBtnSensors" class="btn btn-success">
+                                <i class="fas fa-save"></i>
+                                Запись конфигурации
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- All buttons are now inside their respective grid containers -->
@@ -433,8 +478,259 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Строки для датчиков СГ -->
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">CO</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">CH4</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">O2</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Sensors Connection Status (заменитель таблицы для датчиков СГ) -->
+            <div class="sensors-status-container sensors-only">
+                <!-- Пустые блоки -->
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Связь RS485 – компьютер</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>связь RS485 Ведущий/Ведомый</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Тампер Ведущего</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>Тампер Ведомого</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Состояние реле Ведущего</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>Состояние реле Ведомого</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Sensors Grid (12 blocks with 5 circles each) -->
+            <div class="sensors-grid-container sensors-only">
+                <div class="sensors-grid">
+                    <!-- Row 1 -->
+                    <div class="sensor-block">
+                        <div class="block-number">1</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">2</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="sensor-block">
+                        <div class="block-number">3</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">4</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 3 -->
+                    <div class="sensor-block">
+                        <div class="block-number">5</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">6</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 4 -->
+                    <div class="sensor-block">
+                        <div class="block-number">7</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">8</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 5 -->
+                    <div class="sensor-block">
+                        <div class="block-number">9</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">10</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 6 -->
+                    <div class="sensor-block">
+                        <div class="block-number">11</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">12</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </section>
     </div>
 
