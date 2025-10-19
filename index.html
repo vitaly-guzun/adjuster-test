@@ -114,43 +114,45 @@
                 <h2>Настраиваемые параметры</h2>
                 <div class="parameters-controls">
                     <div class="address-grid">
-                        <!-- Поле для выбора диапазона адресов AM1 -->
-                        <div class="address-field am1-only">
-                            <label for="address-range">Диапазон адресов:</label>
-                            <select id="address-range" class="form-select">
-                                <option value="1">1-10</option>
-                                <option value="11">11-20</option>
-                                <option value="21">21-30</option>
-                                <option value="31">31-40</option>
-                                <option value="41">41-50</option>
-                                <option value="51">51-60</option>
-                                <option value="61">61-70</option>
-                                <option value="71">71-80</option>
-                                <option value="81">81-90</option>
-                                <option value="91">91-100</option>
-                                <option value="101">101-110</option>
-                                <option value="111">111-120</option>
-                                <option value="121">121-127</option>
-                            </select>
+                        <!-- Группа для выбора диапазона адресов AM1 -->
+                        <div class="am1-group range-group am1-only">
+                            <div class="address-field am1-only">
+                                <label for="address-range">Диапазон адресов:</label>
+                                <select id="address-range" class="form-select">
+                                    <option value="1">1-10</option>
+                                    <option value="11">11-20</option>
+                                    <option value="21">21-30</option>
+                                    <option value="31">31-40</option>
+                                    <option value="41">41-50</option>
+                                    <option value="51">51-60</option>
+                                    <option value="61">61-70</option>
+                                    <option value="71">71-80</option>
+                                    <option value="81">81-90</option>
+                                    <option value="91">91-100</option>
+                                    <option value="101">101-110</option>
+                                    <option value="111">111-120</option>
+                                    <option value="121">121-127</option>
+                                </select>
+                            </div>
+                            <div class="am1-button-container am1-only">
+                                <button id="requestRangeBtn" class="btn btn-info">
+                                    <i class="fas fa-search"></i>
+                                    Запросить диапазон адресов
+                                </button>
+                            </div>
                         </div>
-                        <!-- Кнопка для запроса диапазона адресов AM1 -->
-                        <div class="am1-button-container am1-only">
-                            <button id="requestRangeBtn" class="btn btn-info">
-                                <i class="fas fa-search"></i>
-                                Запросить диапазон адресов
-                            </button>
-                        </div>
-                        <!-- Поле для AM1 (одноканальное устройство) -->
-                        <div class="address-field am1-only">
-                            <label for="address1">Новый адрес:</label>
-                            <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
-                        </div>
-                        <!-- Кнопка для AM1 (внутри grid) -->
-                        <div class="am1-button-container am1-only">
-                            <button id="writeBtn" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Записать адрес
-                            </button>
+                        <!-- Группа для записи адреса AM1 -->
+                        <div class="am1-group write-group am1-only">
+                            <div class="address-field am1-only">
+                                <label for="address1">Новый адрес:</label>
+                                <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
+                            </div>
+                            <div class="am1-button-container am1-only">
+                                <button id="writeBtn" class="btn btn-success">
+                                    <i class="fas fa-save"></i>
+                                    Записать адрес
+                                </button>
+                            </div>
                         </div>
                         <!-- Группа для запроса диапазона AM8 -->
                         <div class="am8-range-group am8-only">
@@ -279,17 +281,43 @@
                             </div>
                         </div>
                         
-                        <!-- Поле для КЛ (одноканальное устройство) -->
-                        <div class="address-field kl-only">
-                            <label for="kl-address">Адрес:</label>
-                            <input type="number" id="kl-address" class="form-input" value="1" min="1" max="247">
+                        <!-- Группа для запроса диапазона КЛ -->
+                        <div class="kl-range-group kl-only">
+                            <div class="kl-range-controls-container">
+                                <div class="kl-fields-column">
+                                    <div class="address-field kl-only kl-range-control">
+                                        <label for="kl-start-address">Начальный адрес:</label>
+                                        <input type="number" id="kl-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field kl-only kl-range-control">
+                                        <label for="kl-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="kl-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов КЛ -->
+                                <div class="kl-range-button-container kl-only kl-range-control">
+                                    <button id="requestRangeBtnKl" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <!-- Кнопка для КЛ (внутри grid) -->
-                        <div class="kl-button-container kl-only">
-                            <button id="writeBtnKl" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Записать
-                            </button>
+                        
+                        <!-- Группа для записи адреса КЛ -->
+                        <div class="kl-address-group kl-only">
+                            <div class="kl-address-container">
+                                <div class="address-field kl-only">
+                                    <label for="kl-address">Адрес:</label>
+                                    <input type="number" id="kl-address" class="form-input" value="1" min="1" max="247">
+                                </div>
+                                <div class="kl-button-container kl-only">
+                                    <button id="writeBtnKl" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Поля для датчиков СГ -->

@@ -958,6 +958,49 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* AM1 grouped elements with borders */
+.am1-group {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.am1-group.range-group {
+    border-color: #17a2b8;
+}
+
+.am1-group.write-group {
+    border-color: #28a745;
+}
+
+/* Show AM1 groups only when AM1 tab is active */
+body.am1-active .am1-group {
+    display: flex;
+}
+
+/* AM1 grid layout with grouped elements */
+body.am1-active .address-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2rem !important;
+    width: 100% !important;
+    flex-wrap: wrap;
+}
+
+body.am1-active .am1-group {
+    flex: 1;
+    min-width: 390px;
+    max-width: 520px;
+    justify-content: center;
+}
+
 .address-field {
     display: flex;
     flex-direction: column;
@@ -1111,15 +1154,6 @@ body.am8-active .address-field.am8-only {
     display: flex;
 }
 
-/* Adjust grid layout for AM1 (single field) */
-body.am1-active .address-grid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem;
-    width: 100%;
-    flex-wrap: wrap;
-}
 
 /* AM8 grid layout handled by new structure below */
 
@@ -1161,19 +1195,94 @@ body.kl-active .address-field.kl-only {
     gap: 0.5rem;
 }
 
+/* KL range group */
+.kl-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+    flex: 1;
+}
+
+body.kl-active .kl-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона КЛ */
+.kl-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Колонка для полей диапазона КЛ */
+.kl-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Стили для полей диапазона КЛ */
+body.kl-active .kl-fields-column .address-field.kl-range-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+/* Стили для кнопки диапазона КЛ */
+.kl-range-button-container {
+    display: none !important;
+}
+
+body.kl-active .kl-range-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* KL address group */
+.kl-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+    flex: 1;
+}
+
+body.kl-active .kl-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и поля адреса КЛ */
+.kl-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* Стили для поля адреса внутри группы КЛ */
+body.kl-active .kl-address-container .address-field.kl-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
 /* KL button container rules moved to global button visibility section */
 
 /* PM uses flex layout for groups - old grid definition removed */
 
-/* AM8 uses flex layout for groups */
-body.am1-active .address-grid {
-    display: flex !important;
-    grid-template-columns: none;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem;
-}
 
 body.am8-active .address-grid {
     display: flex !important;
@@ -1567,14 +1676,15 @@ body.kl-active .results-section {
 
 /* Duplicate rule removed - already defined above */
 
-/* KL address grid layout - same as AM1 */
+/* KL address grid layout */
 body.kl-active .address-grid {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
-    align-items: center;
-    gap: 1rem;
+    align-items: stretch;
+    gap: 2rem;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 /* Duplicate rule removed - already defined above */
@@ -1767,7 +1877,8 @@ body.kl-active .kl-button-container {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    height: 100% !important;
+    height: auto !important;
+    flex-shrink: 0;
 }
 
 /* Sensors status indicators */
