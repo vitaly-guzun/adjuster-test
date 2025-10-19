@@ -219,6 +219,16 @@ body {
     box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
 }
 
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -1106,8 +1116,9 @@ body.am1-active .address-grid {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 /* Keep 4x2 grid for AM8 */
@@ -1174,7 +1185,12 @@ body.am8-active .address-grid {
 }
 
 body.am1-active .address-grid {
-    grid-template-columns: auto;
+    display: flex !important;
+    grid-template-columns: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 body.am8-active .address-grid {
@@ -1199,7 +1215,7 @@ body.pm-active .address-grid {
     justify-content: flex-start !important;
     margin-bottom: 0 !important;
     width: auto !important;
-    align-items: center !important;
+    align-items: end !important;
 }
 
 body.pm-active .buttons-container {
@@ -1221,6 +1237,8 @@ body.pm-active #writeBtnPm {
     cursor: pointer !important;
     min-width: 120px !important;
     flex-shrink: 0 !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
 }
 
 /* Button styles for different tabs - all buttons are now inside grid containers */
@@ -1237,8 +1255,27 @@ body.am1-active .address-field.am1-only {
     height: 100%;
 }
 
-body.am1-active .address-field.am1-only input {
+body.am1-active .address-field.am1-only input,
+body.am1-active .address-field.am1-only select {
     height: 48px;
+}
+
+/* Ensure all AM1 elements have consistent height and alignment */
+body.am1-active .address-field.am1-only {
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+/* Ensure buttons have same height as inputs */
+body.am1-active .am1-button-container .btn {
+    height: 48px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 /* AM8 button container rules moved to global button visibility section */
@@ -1395,6 +1432,7 @@ body.sensors-active .address-field.sensors-only {
     gap: 0.5rem;
     width: 180px;
     flex-shrink: 0;
+    align-items: flex-start;
 }
 
 /* Sensors table row visibility */
@@ -1420,7 +1458,8 @@ body.sensors-active .address-grid {
     display: flex !important;
     flex-direction: row !important;
     justify-content: center !important;
-    align-items: center !important;
+    align-items: flex-end !important;
+    align-content: center !important;
     gap: 1.5rem !important;
     width: 100% !important;
     flex-wrap: nowrap !important;
@@ -1434,16 +1473,19 @@ body.sensors-active .address-grid {
 body.sensors-active .sensors-button-container {
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;
+    align-items: flex-end !important;
     flex-shrink: 0 !important;
     height: auto !important;
+    align-self: flex-end !important;
 }
 
 /* Sensors button styling for inline layout */
 body.sensors-active #writeBtnSensors {
     white-space: nowrap !important;
     padding: 12px 20px !important;
-    height: auto !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
 }
 
 /* Hide all other write buttons for sensors tab */
@@ -1461,8 +1503,9 @@ body.sensors-active .kl-button-container {
 body.am1-active .am1-button-container {
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;
-    height: 100% !important;
+    align-items: flex-end !important;
+    min-height: 70px !important;
+    height: auto !important;
 }
 
 .am8-button-container {
@@ -1481,7 +1524,7 @@ body.am8-active .am8-button-container {
 body.pm-active .pm-button-container {
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;
+    align-items: flex-end !important;
 }
 
 .kl-button-container {

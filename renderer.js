@@ -10,6 +10,7 @@ class RS485Adjuster {
         this.writeLogEnabled = false;
         this.loadedTabs = new Map(); // Cache for loaded tab templates
         this.currentTab = 'am1'; // Default tab
+        this.waitingForRangeResponse = false; // Flag for waiting address range response
         
         this.initializeElements();
         this.bindEvents();
@@ -156,6 +157,8 @@ class RS485Adjuster {
         this.writeBtnKl = document.getElementById('writeBtnKl');
         // writeBtnKlGeneral removed - KL uses only kl-button-container
         this.writeBtnSensors = document.getElementById('writeBtnSensors');
+        this.requestRangeBtn = document.getElementById('requestRangeBtn');
+        this.addressRangeSelect = document.getElementById('address-range');
         this.autorequestCheckboxKl = document.getElementById('autorequestCheckboxKl');
         
         // Bind events for new elements
@@ -183,6 +186,12 @@ class RS485Adjuster {
         if (this.writeBtnSensors && !this.writeBtnSensors._eventBound) {
             this.writeBtnSensors.addEventListener('click', () => this.writeParameters());
             this.writeBtnSensors._eventBound = true;
+        }
+        
+        // Bind events for AM1 address range request button
+        if (this.requestRangeBtn && !this.requestRangeBtn._eventBound) {
+            this.requestRangeBtn.addEventListener('click', () => this.requestAddressRange());
+            this.requestRangeBtn._eventBound = true;
         }
         
         // Bind events for KL autorequest checkbox
@@ -528,6 +537,158 @@ class RS485Adjuster {
         return parameters;
     }
 
+    async requestAddressRange() {
+        if (!this.isConnected) {
+            this.showToast('warning', 'Сначала подключитесь к устройству');
+            return;
+        }
+
+        try {
+            // Show loading on button
+            if (this.requestRangeBtn) {
+                this.showLoading(this.requestRangeBtn);
+                this.requestRangeBtn.disabled = true;
+            }
+
+            // Get selected range
+            const selectedRange = this.addressRangeSelect ? this.addressRangeSelect.value : '1';
+            const startAddress = parseInt(selectedRange);
+            
+            // Create 5-byte request command
+            const command = this.createAddressRangeRequest(startAddress);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', command);
+
+            if (result.success) {
+                this.showToast('success', `Запрос диапазона адресов ${startAddress}-${startAddress + 9} отправлен`);
+                this.logMessage(`Запрос диапазона адресов: ${command}`);
+                // Set flag to wait for 24-byte response
+                this.waitingForRangeResponse = true;
+                
+                // Set timeout to reset button if no response received
+                setTimeout(() => {
+                    if (this.waitingForRangeResponse) {
+                        this.waitingForRangeResponse = false;
+                        if (this.requestRangeBtn) {
+                            this.hideLoading(this.requestRangeBtn);
+                            this.requestRangeBtn.disabled = false;
+                        }
+                        this.showToast('warning', 'Тайм-аут ожидания ответа от устройства');
+                    }
+                }, 10000); // 10 second timeout
+                
+            } else {
+                this.showToast('error', 'Ошибка отправки запроса: ' + result.message);
+                // Hide loading and enable button on error
+                if (this.requestRangeBtn) {
+                    this.hideLoading(this.requestRangeBtn);
+                    this.requestRangeBtn.disabled = false;
+                }
+            }
+        } catch (error) {
+            this.showToast('error', 'Ошибка запроса диапазона: ' + error.message);
+            // Hide loading and enable button on error
+            if (this.requestRangeBtn) {
+                this.hideLoading(this.requestRangeBtn);
+                this.requestRangeBtn.disabled = false;
+            }
+        }
+    }
+
+    createAddressRangeRequest(startAddress) {
+        // Create 5-byte command for address range request
+        // Format: [Command Byte][Start Address][End Address][Checksum Low][Checksum High]
+        
+        const commandByte = 0x51; // Example command byte for address range request
+        const endAddress = startAddress + 9;
+        
+        // Calculate checksum (simple XOR of first 3 bytes)
+        const checksum = commandByte ^ (startAddress & 0xFF) ^ (endAddress & 0xFF);
+        const checksumLow = checksum & 0xFF;
+        const checksumHigh = (checksum >> 8) & 0xFF;
+        
+        // Create byte array
+        const commandBytes = [
+            commandByte,
+            startAddress & 0xFF,
+            endAddress & 0xFF,
+            checksumLow,
+            checksumHigh
+        ];
+        
+        // Convert to hex string for transmission
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    parseAddressRangeResponse(responseData) {
+        // Parse 24-byte response containing: Address, Power Status, Input Status
+        // Expected format: 24 bytes of hex data or raw binary data
+        try {
+            let bytes = [];
+            
+            // Check if data is already in hex string format
+            if (typeof responseData === 'string') {
+                // Remove any whitespace, separators and convert to uppercase
+                const cleanData = responseData.replace(/[\s\-:]/g, '').toUpperCase();
+                
+                // Check if it's valid hex
+                if (/^[0-9A-F]+$/.test(cleanData)) {
+                    // Check if we have 24 bytes (48 hex characters)
+                    if (cleanData.length !== 48) {
+                        throw new Error(`Invalid hex response length: expected 48 hex characters, got ${cleanData.length}`);
+                    }
+                    
+                    // Parse hex string to bytes
+                    for (let i = 0; i < 48; i += 2) {
+                        const hexByte = cleanData.substr(i, 2);
+                        bytes.push(parseInt(hexByte, 16));
+                    }
+                } else {
+                    // Try to parse as space-separated bytes or other format
+                    const parts = responseData.trim().split(/\s+/);
+                    bytes = parts.map(part => {
+                        const num = parseInt(part, 16);
+                        if (isNaN(num)) throw new Error(`Invalid hex byte: ${part}`);
+                        return num;
+                    });
+                    
+                    if (bytes.length !== 24) {
+                        throw new Error(`Invalid response length: expected 24 bytes, got ${bytes.length}`);
+                    }
+                }
+            } else if (Array.isArray(responseData)) {
+                // Data is already array of bytes
+                bytes = responseData;
+                if (bytes.length !== 24) {
+                    throw new Error(`Invalid response length: expected 24 bytes, got ${bytes.length}`);
+                }
+            } else {
+                throw new Error('Unsupported response data format');
+            }
+
+            // Extract information based on protocol
+            // Protocol format: [Address][PowerStatus][InputStatus][...other data...]
+            const deviceInfo = {
+                address: bytes[0], // First byte: device address (1-247)
+                powerStatus: bytes[1], // Second byte: power status (0=off, 1=on)
+                inputStatus: bytes[2], // Third byte: input status (0=open, 1=closed, 2=no data)
+                rawData: bytes
+            };
+
+            // Validate address range
+            if (deviceInfo.address < 1 || deviceInfo.address > 247) {
+                throw new Error(`Invalid device address: ${deviceInfo.address}`);
+            }
+
+            return deviceInfo;
+        } catch (error) {
+            console.error('Error parsing address range response:', error);
+            console.error('Response data:', responseData);
+            throw new Error('Failed to parse device response: ' + error.message);
+        }
+    }
+
     updateTestResults() {
         const rows = this.testResults.querySelectorAll('.table-row');
         
@@ -560,14 +721,127 @@ class RS485Adjuster {
         });
     }
 
+    updateTestResultRow(address, deviceInfo) {
+        // Find the row for the specific address and update it with device information
+        const rows = this.testResults.querySelectorAll('.table-row.am1-only');
+        
+        for (const row of rows) {
+            const addressCell = row.querySelector('.table-cell:first-child');
+            if (addressCell && parseInt(addressCell.textContent) === address) {
+                // Update address cell if needed
+                addressCell.textContent = deviceInfo.address;
+                
+                // Update power status
+                const powerStatus = row.querySelector('.table-cell:nth-child(2) .status-indicator');
+                if (powerStatus) {
+                    if (deviceInfo.powerStatus === 1) {
+                        powerStatus.className = 'status-indicator online';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                    } else {
+                        powerStatus.className = 'status-indicator offline';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                    }
+                }
+                
+                // Update input status
+                const inputStatus = row.querySelector('.table-cell:nth-child(3) .input-status-indicator');
+                if (inputStatus) {
+                    if (deviceInfo.inputStatus === 0) {
+                        inputStatus.className = 'input-status-indicator open';
+                    } else if (deviceInfo.inputStatus === 1) {
+                        inputStatus.className = 'input-status-indicator closed';
+                    } else {
+                        inputStatus.className = 'input-status-indicator no-data';
+                    }
+                }
+                
+                return true; // Row updated successfully
+            }
+        }
+        
+        // If row not found, create a new one (this shouldn't normally happen for AM1)
+        // But we'll handle it gracefully by updating the existing row with address 1
+        if (this.currentTab === 'am1') {
+            const firstRow = this.testResults.querySelector('.table-row.am1-only');
+            if (firstRow) {
+                const addressCell = firstRow.querySelector('.table-cell:first-child');
+                if (addressCell && parseInt(addressCell.textContent) === 1) {
+                    // Update the first row with the found device info
+                    addressCell.textContent = deviceInfo.address;
+                    
+                    // Update power status
+                    const powerStatus = firstRow.querySelector('.table-cell:nth-child(2) .status-indicator');
+                    if (powerStatus) {
+                        if (deviceInfo.powerStatus === 1) {
+                            powerStatus.className = 'status-indicator online';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                        } else {
+                            powerStatus.className = 'status-indicator offline';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                        }
+                    }
+                    
+                    // Update input status
+                    const inputStatus = firstRow.querySelector('.table-cell:nth-child(3) .input-status-indicator');
+                    if (inputStatus) {
+                        if (deviceInfo.inputStatus === 0) {
+                            inputStatus.className = 'input-status-indicator open';
+                        } else if (deviceInfo.inputStatus === 1) {
+                            inputStatus.className = 'input-status-indicator closed';
+                        } else {
+                            inputStatus.className = 'input-status-indicator no-data';
+                        }
+                    }
+                    
+                    return true; // Row updated successfully
+                }
+            }
+        }
+        
+        return false; // Row not found
+    }
+
     handleSerialData(data) {
         this.logMessage(`Получено: ${data}`);
         
-        // Обработка ответов от устройства
+        // Check if we're waiting for address range response
+        if (this.waitingForRangeResponse) {
+            try {
+                // Parse the 24-byte response
+                const deviceInfo = this.parseAddressRangeResponse(data);
+                
+                // Update the test results table
+                const updated = this.updateTestResultRow(deviceInfo.address, deviceInfo);
+                
+                if (updated) {
+                    this.showToast('success', `Найдено устройство с адресом ${deviceInfo.address}`);
+                    this.logMessage(`Device found - Address: ${deviceInfo.address}, Power: ${deviceInfo.powerStatus}, Input: ${deviceInfo.inputStatus}`);
+                } else {
+                    this.showToast('warning', `Получен ответ от устройства ${deviceInfo.address}, но строка в таблице не найдена`);
+                }
+                
+                // Reset waiting flag and enable button
+                this.waitingForRangeResponse = false;
+                if (this.requestRangeBtn) {
+                    this.hideLoading(this.requestRangeBtn);
+                    this.requestRangeBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                this.showToast('error', 'Ошибка обработки ответа: ' + error.message);
+                this.waitingForRangeResponse = false;
+                if (this.requestRangeBtn) {
+                    this.hideLoading(this.requestRangeBtn);
+                    this.requestRangeBtn.disabled = false;
+                }
+            }
+        } else {
+            // Regular response handling
         if (data.includes('OK')) {
             this.showToast('success', 'Команда выполнена успешно');
         } else if (data.includes('ERROR')) {
             this.showToast('error', 'Ошибка выполнения команды');
+            }
         }
     }
 
