@@ -320,49 +320,78 @@
                             </div>
                         </div>
                         
-                        <!-- Поля для датчиков СГ -->
-                        <div class="address-field sensors-only">
-                            <label for="sensors-address">Адрес:</label>
-                            <input type="number" id="sensors-address" class="form-input" value="1" min="1" max="247">
+                        <!-- Группа для запроса диапазона датчиков СГ -->
+                        <div class="sensors-range-group sensors-only">
+                            <div class="sensors-range-controls-container">
+                                <div class="sensors-fields-column">
+                                    <div class="address-field sensors-only sensors-range-control">
+                                        <label for="sensors-start-address">Начальный адрес:</label>
+                                        <input type="number" id="sensors-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field sensors-only sensors-range-control">
+                                        <label for="sensors-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="sensors-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов датчиков СГ -->
+                                <div class="sensors-range-button-container sensors-only sensors-range-control">
+                                    <button id="requestRangeBtnSensors" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Сканировать
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="address-field sensors-only">
-                            <label for="sensors-board-count">Количество плат:</label>
-                            <select id="sensors-board-count" class="form-select">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
-                            </select>
-                        </div>
-                        <div class="address-field sensors-only">
-                            <label for="sensors-power">Мощность:</label>
-                            <select id="sensors-power" class="form-select">
-                                <option value="10">10%</option>
-                                <option value="20">20%</option>
-                                <option value="30">30%</option>
-                                <option value="40">40%</option>
-                                <option value="50">50%</option>
-                                <option value="60">60%</option>
-                                <option value="70">70%</option>
-                                <option value="80">80%</option>
-                                <option value="90">90%</option>
-                                <option value="100" selected>100%</option>
-                            </select>
-                        </div>
-                        <!-- Кнопка для датчиков СГ -->
-                        <div class="sensors-button-container sensors-only">
-                            <button id="writeBtnSensors" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Запись конфигурации
-                            </button>
+                        
+                        <!-- Группа для конфигурации датчиков СГ -->
+                        <div class="sensors-config-group sensors-only">
+                            <div class="sensors-config-container">
+                                <div class="sensors-fields-grid">
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-address">Адрес:</label>
+                                        <input type="number" id="sensors-address" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-board-count">Количество плат:</label>
+                                        <select id="sensors-board-count" class="form-select">
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option value="8">8</option>
+                                            <option value="9">9</option>
+                                            <option value="10">10</option>
+                                            <option value="11">11</option>
+                                            <option value="12">12</option>
+                                        </select>
+                                    </div>
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-power">Мощность:</label>
+                                        <select id="sensors-power" class="form-select">
+                                            <option value="10">10%</option>
+                                            <option value="20">20%</option>
+                                            <option value="30">30%</option>
+                                            <option value="40">40%</option>
+                                            <option value="50">50%</option>
+                                            <option value="60">60%</option>
+                                            <option value="70">70%</option>
+                                            <option value="80">80%</option>
+                                            <option value="90">90%</option>
+                                            <option value="100" selected>100%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Кнопка для датчиков СГ -->
+                                <div class="sensors-button-container sensors-only">
+                                    <button id="writeBtnSensors" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Запись конфигурации
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
