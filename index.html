@@ -225,30 +225,58 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Поля для PM (4-канальный релейный модуль) -->
-                        <div class="address-field pm-only">
-                            <label for="pm-address1">Адрес 1:</label>
-                            <input type="number" id="pm-address1" class="form-input" value="1" min="1" max="247">
-                        </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address2">Адрес 2:</label>
-                            <input type="number" id="pm-address2" class="form-input" value="2" min="1" max="247">
-                        </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address3">Адрес 3:</label>
-                            <input type="number" id="pm-address3" class="form-input" value="3" min="1" max="247">
+                        <!-- Группа для запроса диапазона PM -->
+                        <div class="pm-range-group pm-only">
+                            <div class="pm-range-controls-container">
+                                <div class="pm-fields-column">
+                                    <div class="address-field pm-only pm-range-control">
+                                        <label for="pm-start-address">Начальный адрес:</label>
+                                        <input type="number" id="pm-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field pm-only pm-range-control">
+                                        <label for="pm-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="pm-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов PM -->
+                                <div class="pm-range-button-container pm-only pm-range-control">
+                                    <button id="requestRangeBtnPm" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
                             </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address4">Адрес 4:</label>
-                            <input type="number" id="pm-address4" class="form-input" value="4" min="1" max="247">
                         </div>
-                        
-                        <!-- Кнопка для PM (внутри grid) -->
-                        <div class="pm-button-container pm-only">
-                            <button id="writeBtnPm" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Записать
-                            </button>
+                        <!-- Группа для записи адресов PM -->
+                        <div class="pm-address-group pm-only">
+                            <div class="pm-address-container">
+                                <!-- Поля для PM (4-канальный релейный модуль) -->
+                                <div class="pm-fields-grid">
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address1">Адрес 1:</label>
+                                        <input type="number" id="pm-address1" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address2">Адрес 2:</label>
+                                        <input type="number" id="pm-address2" class="form-input" value="2" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address3">Адрес 3:</label>
+                                        <input type="number" id="pm-address3" class="form-input" value="3" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address4">Адрес 4:</label>
+                                        <input type="number" id="pm-address4" class="form-input" value="4" min="1" max="247">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для записи PM (справа) -->
+                                <div class="pm-button-container pm-only">
+                                    <button id="writeBtnPm" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Поле для КЛ (одноканальное устройство) -->

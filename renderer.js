@@ -12,11 +12,16 @@ class RS485Adjuster {
         this.currentTab = 'am1'; // Default tab
         this.waitingForRangeResponse = false; // Flag for waiting address range response
         this.waitingForRangeResponseAm8 = false; // Flag for waiting AM8 address range response
+        this.waitingForRangeResponsePm = false; // Flag for waiting PM address range response
         
         // AM8 autowrite variables
         this.autowriteEnabledAm8 = false; // Flag for AM8 autowrite mode
         this.currentAddressIndexAm8 = 0; // Current address index for AM8 autowrite
         this.am8Addresses = []; // Array of 8 addresses for AM8 autowrite
+        
+        // PM autowrite variables
+        this.currentAddressIndexPm = 0; // Current address index for PM autowrite (0-3 for 4 addresses)
+        this.waitingForPmWriteResponse = false; // Flag for waiting PM address write response
         
         this.initializeElements();
         this.bindEvents();
@@ -168,6 +173,9 @@ class RS485Adjuster {
         this.requestRangeBtnAm8 = document.getElementById('requestRangeBtnAm8');
         this.am8StartAddress = document.getElementById('am8-start-address');
         this.am8EndAddress = document.getElementById('am8-end-address');
+        this.requestRangeBtnPm = document.getElementById('requestRangeBtnPm');
+        this.pmStartAddress = document.getElementById('pm-start-address');
+        this.pmEndAddress = document.getElementById('pm-end-address');
         this.autorequestCheckboxAm8 = document.getElementById('autorequestCheckboxAm8');
         this.autorequestCheckboxKl = document.getElementById('autorequestCheckboxKl');
         
@@ -208,6 +216,12 @@ class RS485Adjuster {
         if (this.requestRangeBtnAm8 && !this.requestRangeBtnAm8._eventBound) {
             this.requestRangeBtnAm8.addEventListener('click', () => this.requestAddressRangeAm8());
             this.requestRangeBtnAm8._eventBound = true;
+        }
+        
+        // Bind events for PM address range request button
+        if (this.requestRangeBtnPm && !this.requestRangeBtnPm._eventBound) {
+            this.requestRangeBtnPm.addEventListener('click', () => this.requestAddressRangePm());
+            this.requestRangeBtnPm._eventBound = true;
         }
         
         // Bind events for AM8 autorequest checkbox
@@ -521,6 +535,18 @@ class RS485Adjuster {
                 return; // Exit early for AM8 autowrite
             }
             
+            // Handle PM address write logic
+            if (this.currentTab === 'pm') {
+                // Start PM address write sequence (4 addresses sequentially)
+                this.currentAddressIndexPm = 0;
+                this.performPmAddressWrite();
+                if (activeButton) {
+                    this.hideLoading(activeButton);
+                    activeButton.disabled = false;
+                }
+                return; // Exit early for PM address write
+            }
+            
             // Get current parameters from the active tab
             const parameters = this.getCurrentParameters();
 
@@ -753,6 +779,102 @@ class RS485Adjuster {
         return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
     }
 
+    async requestAddressRangePm() {
+        if (!this.isConnected) {
+            this.showToast('warning', 'Сначала подключитесь к устройству');
+            return;
+        }
+
+        try {
+            // Show loading on button
+            if (this.requestRangeBtnPm) {
+                this.showLoading(this.requestRangeBtnPm);
+                this.requestRangeBtnPm.disabled = true;
+            }
+
+            // Get start and end addresses from form fields
+            const startAddress = this.pmStartAddress ? parseInt(this.pmStartAddress.value) : 1;
+            const endAddress = this.pmEndAddress ? parseInt(this.pmEndAddress.value) : 4;
+            
+            // Validate addresses (1-127)
+            if (startAddress < 1 || startAddress > 127) {
+                throw new Error('Начальный адрес должен быть в диапазоне от 1 до 127');
+            }
+            
+            if (endAddress < 1 || endAddress > 127) {
+                throw new Error('Конечный адрес должен быть в диапазоне от 1 до 127');
+            }
+            
+            if (startAddress > endAddress) {
+                throw new Error('Начальный адрес не может быть больше конечного');
+            }
+            
+            // Create 5-byte request command
+            const command = this.createAddressRangeRequestPm(startAddress, endAddress);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', command);
+
+            if (result.success) {
+                this.showToast('success', `Запрос диапазона адресов ${startAddress}-${endAddress} отправлен`);
+                this.logMessage(`Запрос диапазона адресов PM: ${command}`);
+                // Set flag to wait for response (PM specific)
+                this.waitingForRangeResponsePm = true;
+                
+                // Set timeout to reset button if no response received
+                setTimeout(() => {
+                    if (this.waitingForRangeResponsePm) {
+                        this.waitingForRangeResponsePm = false;
+                        if (this.requestRangeBtnPm) {
+                            this.hideLoading(this.requestRangeBtnPm);
+                            this.requestRangeBtnPm.disabled = false;
+                        }
+                        this.showToast('warning', 'Тайм-аут ожидания ответа от устройства');
+                    }
+                }, 10000); // 10 second timeout
+                
+            } else {
+                this.showToast('error', 'Ошибка отправки запроса: ' + result.message);
+                // Hide loading and enable button on error
+                if (this.requestRangeBtnPm) {
+                    this.hideLoading(this.requestRangeBtnPm);
+                    this.requestRangeBtnPm.disabled = false;
+                }
+            }
+        } catch (error) {
+            this.showToast('error', 'Ошибка запроса диапазона: ' + error.message);
+            // Hide loading and enable button on error
+            if (this.requestRangeBtnPm) {
+                this.hideLoading(this.requestRangeBtnPm);
+                this.requestRangeBtnPm.disabled = false;
+            }
+        }
+    }
+
+    createAddressRangeRequestPm(startAddress, endAddress) {
+        // Create 5-byte command for address range request (PM version)
+        // Format: [Command Byte][Start Address][End Address][Checksum Low][Checksum High]
+        
+        const commandByte = 0x53; // Command byte for PM address range request
+        
+        // Calculate checksum (simple XOR of first 3 bytes)
+        const checksum = commandByte ^ (startAddress & 0xFF) ^ (endAddress & 0xFF);
+        const checksumLow = checksum & 0xFF;
+        const checksumHigh = (checksum >> 8) & 0xFF;
+        
+        // Create byte array
+        const commandBytes = [
+            commandByte,
+            startAddress & 0xFF,
+            endAddress & 0xFF,
+            checksumLow,
+            checksumHigh
+        ];
+        
+        // Convert to hex string for transmission
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
     parseAddressRangeResponse(responseData) {
         // Parse 24-byte response containing: Address, Power Status, Input Status
         // Expected format: 24 bytes of hex data or raw binary data
@@ -882,6 +1004,80 @@ class RS485Adjuster {
             console.error('Error parsing AM8 address range response:', error);
             console.error('Response data:', responseData);
             throw new Error('Failed to parse AM8 device response: ' + error.message);
+        }
+    }
+
+    parseAddressRangeResponsePm(responseData) {
+        // Parse PM response containing: 4 addresses, power status, relay status
+        // Expected format: 24-byte response with device information for PM
+        try {
+            let bytes = [];
+            
+            // Check if data is already in hex string format
+            if (typeof responseData === 'string') {
+                // Remove any whitespace, separators and convert to uppercase
+                const cleanData = responseData.replace(/[\s\-:]/g, '').toUpperCase();
+                
+                // Check if it's valid hex
+                if (/^[0-9A-F]+$/.test(cleanData)) {
+                    // Check if we have 24 bytes (48 hex characters)
+                    if (cleanData.length !== 48) {
+                        throw new Error(`Invalid PM hex response length: expected 48 hex characters, got ${cleanData.length}`);
+                    }
+                    
+                    // Parse hex string to bytes
+                    for (let i = 0; i < 48; i += 2) {
+                        const hexByte = cleanData.substr(i, 2);
+                        bytes.push(parseInt(hexByte, 16));
+                    }
+                } else {
+                    // Try to parse as space-separated bytes or other format
+                    const parts = responseData.trim().split(/\s+/);
+                    bytes = parts.map(part => {
+                        const num = parseInt(part, 16);
+                        if (isNaN(num)) throw new Error(`Invalid hex byte: ${part}`);
+                        return num;
+                    });
+                    
+                    if (bytes.length !== 24) {
+                        throw new Error(`Invalid PM response length: expected 24 bytes, got ${bytes.length}`);
+                    }
+                }
+            } else if (Array.isArray(responseData)) {
+                // Data is already array of bytes
+                bytes = responseData;
+                if (bytes.length !== 24) {
+                    throw new Error(`Invalid PM response length: expected 24 bytes, got ${bytes.length}`);
+                }
+            } else {
+                throw new Error('Unsupported PM response data format');
+            }
+
+            // PM response structure (24 bytes):
+            // Bytes 0-3: 4 addresses on device (1-247)
+            // Byte 4: Power status (0=off, 1=on)
+            // Bytes 5-8: 4 relay statuses (0=open, 1=closed, 2=no data)
+            // Bytes 9-23: Reserved/extended data
+            
+            const pmDeviceInfo = {
+                addresses: bytes.slice(0, 4), // First 4 bytes: addresses (1-247)
+                powerStatus: bytes[4], // Byte 4: power status (0=off, 1=on)
+                relayStatuses: bytes.slice(5, 9), // Bytes 5-8: 4 relay statuses
+                rawData: bytes
+            };
+
+            // Validate addresses
+            for (let i = 0; i < pmDeviceInfo.addresses.length; i++) {
+                if (pmDeviceInfo.addresses[i] < 1 || pmDeviceInfo.addresses[i] > 247) {
+                    console.warn(`Invalid PM address at position ${i}: ${pmDeviceInfo.addresses[i]}`);
+                }
+            }
+
+            return pmDeviceInfo;
+        } catch (error) {
+            console.error('Error parsing PM address range response:', error);
+            console.error('Response data:', responseData);
+            throw new Error('Failed to parse PM device response: ' + error.message);
         }
     }
 
@@ -1076,6 +1272,85 @@ class RS485Adjuster {
         return false; // Row not found
     }
 
+    updateTestResultRowPm(address, deviceInfo) {
+        // Find the row for the specific address and update it with device information for PM
+        const rows = this.testResults.querySelectorAll('.table-row.pm-only');
+        
+        for (const row of rows) {
+            const addressCell = row.querySelector('.table-cell:first-child');
+            if (addressCell && parseInt(addressCell.textContent) === address) {
+                // Update address cell if needed
+                addressCell.textContent = deviceInfo.address;
+                
+                // Update power status
+                const powerStatus = row.querySelector('.table-cell:nth-child(2) .status-indicator');
+                if (powerStatus) {
+                    if (deviceInfo.powerStatus === 1) {
+                        powerStatus.className = 'status-indicator online';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                    } else {
+                        powerStatus.className = 'status-indicator offline';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                    }
+                }
+                
+                // Update relay status (PM uses relay-status-indicator instead of input-status-indicator)
+                const relayStatus = row.querySelector('.table-cell:nth-child(3) .relay-status-indicator');
+                if (relayStatus) {
+                    if (deviceInfo.inputStatus === 0) {
+                        relayStatus.className = 'relay-status-indicator open';
+                    } else if (deviceInfo.inputStatus === 1) {
+                        relayStatus.className = 'relay-status-indicator closed';
+                    } else {
+                        relayStatus.className = 'relay-status-indicator no-data';
+                    }
+                }
+                
+                return true; // Row updated successfully
+            }
+        }
+        
+        // If row not found, update the first PM row with the found device info
+        if (this.currentTab === 'pm') {
+            const firstRow = this.testResults.querySelector('.table-row.pm-only');
+            if (firstRow) {
+                const addressCell = firstRow.querySelector('.table-cell:first-child');
+                if (addressCell) {
+                    // Update the first row with the found device info
+                    addressCell.textContent = deviceInfo.address;
+                    
+                    // Update power status
+                    const powerStatus = firstRow.querySelector('.table-cell:nth-child(2) .status-indicator');
+                    if (powerStatus) {
+                        if (deviceInfo.powerStatus === 1) {
+                            powerStatus.className = 'status-indicator online';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                        } else {
+                            powerStatus.className = 'status-indicator offline';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                        }
+                    }
+                    
+                    // Update relay status
+                    const relayStatus = firstRow.querySelector('.table-cell:nth-child(3) .relay-status-indicator');
+                    if (relayStatus) {
+                        if (deviceInfo.inputStatus === 0) {
+                            relayStatus.className = 'relay-status-indicator open';
+                        } else if (deviceInfo.inputStatus === 1) {
+                            relayStatus.className = 'relay-status-indicator closed';
+                        } else {
+                            relayStatus.className = 'relay-status-indicator no-data';
+                        }
+                    }
+                    
+                    return true; // Row updated successfully
+                }
+            }
+        }
+        
+        return false; // Row not found
+    }
+
     updateTestResultTableAm8(am8DeviceInfo) {
         // Update AM8 test results table with all 8 addresses, power status and 9 inputs
         const rows = this.testResults.querySelectorAll('.table-row.am8-only');
@@ -1111,6 +1386,47 @@ class RS485Adjuster {
                         inputStatus.className = 'input-status-indicator closed';
                     } else {
                         inputStatus.className = 'input-status-indicator no-data';
+                    }
+                }
+            }
+        }
+    }
+
+    updateTestResultTablePm(pmDeviceInfo) {
+        // Update PM test results table with all 4 addresses, power status and 4 relay statuses
+        const rows = this.testResults.querySelectorAll('.table-row.pm-only');
+        
+        // Update each row with corresponding address data
+        for (let i = 0; i < Math.min(rows.length, 4); i++) {
+            const row = rows[i];
+            const addressCell = row.querySelector('.table-cell:first-child');
+            
+            if (addressCell && pmDeviceInfo.addresses[i]) {
+                // Update address
+                addressCell.textContent = pmDeviceInfo.addresses[i];
+                
+                // Update power status (same for all addresses)
+                const powerStatus = row.querySelector('.table-cell:nth-child(2) .status-indicator');
+                if (powerStatus) {
+                    if (pmDeviceInfo.powerStatus === 1) {
+                        powerStatus.className = 'status-indicator online';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                    } else {
+                        powerStatus.className = 'status-indicator offline';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                    }
+                }
+                
+                // Update relay status (use corresponding relay for this address)
+                const relayStatus = row.querySelector('.table-cell:nth-child(3) .relay-status-indicator');
+                if (relayStatus && pmDeviceInfo.relayStatuses[i] !== undefined) {
+                    const relayValue = pmDeviceInfo.relayStatuses[i];
+                    if (relayValue === 0) {
+                        relayStatus.className = 'relay-status-indicator open';
+                    } else if (relayValue === 1) {
+                        relayStatus.className = 'relay-status-indicator closed';
+                    } else {
+                        relayStatus.className = 'relay-status-indicator no-data';
                     }
                 }
             }
@@ -1230,6 +1546,104 @@ class RS485Adjuster {
         }
     }
 
+    async writeAddressPm(addressIndex) {
+        // Write single address for PM (4 addresses, index 0-3)
+        if (!this.isConnected) {
+            this.showToast('warning', 'Сначала подключитесь к устройству');
+            return false;
+        }
+
+        try {
+            // Get address from corresponding input field
+            const addressInputs = ['pm-address1', 'pm-address2', 'pm-address3', 'pm-address4'];
+            
+            const addressInputId = addressInputs[addressIndex];
+            const addressInput = document.getElementById(addressInputId);
+            
+            if (!addressInput) {
+                throw new Error(`PM address input field ${addressInputId} not found`);
+            }
+            
+            const newAddress = parseInt(addressInput.value);
+            if (isNaN(newAddress) || newAddress < 1 || newAddress > 247) {
+                throw new Error(`Invalid PM address: ${newAddress}`);
+            }
+            
+            // Create write command for this address
+            const command = this.createWriteAddressCommandPm(addressIndex, newAddress);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', command);
+            
+            if (result.success) {
+                this.logMessage(`PM: Запись адреса ${newAddress} в позицию ${addressIndex + 1} отправлена`);
+                // Set flag to wait for response from device with new address
+                this.waitingForPmWriteResponse = true;
+                return true;
+            } else {
+                this.showToast('error', `Ошибка записи адреса ${newAddress}: ${result.message}`);
+                return false;
+            }
+            
+        } catch (error) {
+            this.showToast('error', `Ошибка записи адреса PM: ${error.message}`);
+            return false;
+        }
+    }
+
+    createWriteAddressCommandPm(addressIndex, newAddress) {
+        // Create 5-byte command for writing single address in PM
+        // Format: [Command Byte][Address Index][New Address][Checksum Low][Checksum High]
+        
+        const commandByte = 0x54; // Command byte for PM address write
+        
+        // Calculate checksum (simple XOR of first 3 bytes)
+        const checksum = commandByte ^ (addressIndex & 0xFF) ^ (newAddress & 0xFF);
+        const checksumLow = checksum & 0xFF;
+        const checksumHigh = (checksum >> 8) & 0xFF;
+        
+        // Create byte array
+        const commandBytes = [
+            commandByte,
+            addressIndex & 0xFF,
+            newAddress & 0xFF,
+            checksumLow,
+            checksumHigh
+        ];
+        
+        // Convert to hex string for transmission
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    async performPmAddressWrite() {
+        // Perform sequential write of all 4 addresses for PM
+        if (this.currentAddressIndexPm >= 4) {
+            // All addresses written, finish PM address write
+            this.showToast('success', 'PM: Все адреса записаны');
+            this.currentAddressIndexPm = 0;
+            return;
+        }
+        
+        try {
+            const success = await this.writeAddressPm(this.currentAddressIndexPm);
+            
+            if (success) {
+                this.currentAddressIndexPm++;
+                // Wait a bit before next write (500ms interval as requested)
+                setTimeout(() => {
+                    this.performPmAddressWrite();
+                }, 500);
+            } else {
+                // Error occurred, stop PM address write
+                this.currentAddressIndexPm = 0;
+            }
+            
+        } catch (error) {
+            this.showToast('error', `Ошибка записи адресов PM: ${error.message}`);
+            this.currentAddressIndexPm = 0;
+        }
+    }
+
     handleSerialData(data) {
         this.logMessage(`Получено: ${data}`);
         
@@ -1292,12 +1706,60 @@ class RS485Adjuster {
                     this.requestRangeBtnAm8.disabled = false;
                 }
             }
+        }
+        // Check if we're waiting for address range response (PM)
+        else if (this.waitingForRangeResponsePm) {
+            try {
+                // Parse the response for PM (24-byte response with 4 addresses, power, relay status)
+                const pmDeviceInfo = this.parseAddressRangeResponsePm(data);
+                
+                // Update the test results table for PM with all 4 addresses
+                this.updateTestResultTablePm(pmDeviceInfo);
+                
+                this.showToast('success', `PM: Получена информация об устройстве`);
+                this.logMessage(`PM - Found device with addresses: ${pmDeviceInfo.addresses.join(', ')}, Power: ${pmDeviceInfo.powerStatus}, Relays: ${pmDeviceInfo.relayStatuses.join(', ')}`);
+                
+                // Reset waiting flag and enable button
+                this.waitingForRangeResponsePm = false;
+                if (this.requestRangeBtnPm) {
+                    this.hideLoading(this.requestRangeBtnPm);
+                    this.requestRangeBtnPm.disabled = false;
+                }
+                
+            } catch (error) {
+                this.showToast('error', 'PM: Ошибка обработки ответа: ' + error.message);
+                this.waitingForRangeResponsePm = false;
+                if (this.requestRangeBtnPm) {
+                    this.hideLoading(this.requestRangeBtnPm);
+                    this.requestRangeBtnPm.disabled = false;
+                }
+            }
+        }
+        // Check if we're waiting for PM address write response
+        else if (this.waitingForPmWriteResponse) {
+            try {
+                // Parse the response for PM (24-byte response with updated addresses)
+                const pmDeviceInfo = this.parseAddressRangeResponsePm(data);
+                
+                // Update the test results table for PM with new addresses
+                this.updateTestResultTablePm(pmDeviceInfo);
+                
+                this.showToast('success', `PM: Адрес обновлен`);
+                this.logMessage(`PM - Address updated: ${pmDeviceInfo.addresses.join(', ')}`);
+                
+                // Reset waiting flag
+                this.waitingForPmWriteResponse = false;
+                
+            } catch (error) {
+                this.showToast('error', 'PM: Ошибка обработки ответа записи: ' + error.message);
+                this.waitingForPmWriteResponse = false;
+            }
         } else {
             // Regular response handling
-        if (data.includes('OK')) {
-            this.showToast('success', 'Команда выполнена успешно');
-        } else if (data.includes('ERROR')) {
-            this.showToast('error', 'Ошибка выполнения команды');
+            if (data.includes('OK')) {
+                this.showToast('success', 'Команда выполнена успешно');
+            } else if (data.includes('ERROR')) {
+                this.showToast('error', 'Ошибка выполнения команды');
             }
         }
     }

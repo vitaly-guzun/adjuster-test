@@ -1163,13 +1163,7 @@ body.kl-active .address-field.kl-only {
 
 /* KL button container rules moved to global button visibility section */
 
-/* Adjust grid layout for PM (4 fields in 4x1 grid, shifted left) */
-body.pm-active .address-grid {
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto;
-    justify-content: flex-start;
-    margin-left: calc(100% / 4); /* Shift left by one full field width */
-}
+/* PM uses flex layout for groups - old grid definition removed */
 
 /* AM8 uses flex layout for groups */
 body.am1-active .address-grid {
@@ -1356,17 +1350,97 @@ body.pm-active .parameters-controls {
 }
 
 body.pm-active .address-grid {
-    display: grid !important;
-    grid-template-columns: auto auto auto auto auto !important;
-    gap: 1rem !important;
-    justify-content: flex-start !important;
-    margin-bottom: 0 !important;
-    width: auto !important;
-    align-items: end !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    width: 100% !important;
 }
 
 body.pm-active .buttons-container {
     display: none !important;
+}
+
+/* PM range group - левая группа */
+.pm-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+}
+
+body.pm-active .pm-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона PM */
+.pm-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Колонка для полей диапазона PM */
+.pm-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* PM address group - правая группа */
+.pm-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    flex: 1;
+}
+
+body.pm-active .pm-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и полей в правой группе PM */
+.pm-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Сетка для 4 полей адресов PM */
+.pm-fields-grid {
+    display: none;
+}
+
+body.pm-active .pm-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    flex: 1;
+}
+
+/* Стили для полей в новой структуре PM */
+body.pm-active .pm-fields-column .address-field.pm-range-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+body.pm-active .pm-fields-grid .address-field.pm-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 /* PM button container rules moved to global button visibility section */
@@ -1668,10 +1742,22 @@ body.am8-active .am8-button-container {
 .pm-button-container {
     display: none !important;
 }
+
+.pm-range-button-container {
+    display: none !important;
+}
+
+body.pm-active .pm-range-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
 body.pm-active .pm-button-container {
     display: flex !important;
     justify-content: center !important;
-    align-items: flex-end !important;
+    align-items: center !important;
+    margin-left: 1rem; /* Отступ от сетки полей */
 }
 
 .kl-button-container {
