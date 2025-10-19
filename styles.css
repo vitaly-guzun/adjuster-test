@@ -1121,11 +1121,7 @@ body.am1-active .address-grid {
     flex-wrap: wrap;
 }
 
-/* Keep 4x2 grid for AM8 */
-body.am8-active .address-grid {
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-}
+/* AM8 grid layout handled by new structure below */
 
 /* Table row visibility control */
 .table-row.am1-only {
@@ -1175,15 +1171,7 @@ body.pm-active .address-grid {
     margin-left: calc(100% / 4); /* Shift left by one full field width */
 }
 
-/* Restore normal positioning for AM1 and AM8 tabs */
-body.am1-active .address-grid,
-body.am8-active .address-grid {
-    display: grid;
-    gap: 1rem;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-
+/* AM8 uses flex layout for groups */
 body.am1-active .address-grid {
     display: flex !important;
     grid-template-columns: none;
@@ -1194,8 +1182,167 @@ body.am1-active .address-grid {
 }
 
 body.am8-active .address-grid {
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto auto;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+}
+
+/* AM8 range group - левая группа */
+.am8-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+}
+
+body.am8-active .am8-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона */
+.am8-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* Колонка для полей диапазона */
+.am8-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* AM8 address group - правая группа */
+.am8-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    flex: 1.3; /* Увеличено на 30% (1.0 + 0.3 = 1.3) */
+}
+
+body.am8-active .am8-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и полей в правой группе */
+.am8-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+body.am8-active .am8-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+/* Сетка для 8 полей адресов */
+.am8-fields-grid {
+    display: none;
+}
+
+body.am8-active .am8-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    flex: 1;
+}
+
+/* Стили для элементов внутри левой группы */
+body.am8-active .am8-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+body.am8-active .am8-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+body.am8-active .am8-fields-column .address-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+body.am8-active .am8-range-controls-container .am8-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: auto;
+    margin-top: 24px; /* Выравниваем с первой строкой полей */
+}
+
+/* Стили для полей диапазона в левой группе */
+body.am8-active .am8-range-controls-container .address-field.am8-range-control {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+/* Стили для полей адресов в правой группе - адаптивная ширина */
+body.am8-active .am8-fields-grid .address-field.am8-only {
+    display: flex;
+    flex-direction: column;
+    min-width: 80px; /* Увеличено для лучшего отображения */
+    max-width: none; /* Убираем ограничение max-width */
+    width: 100%; /* Поля занимают всю ширину колонки сетки */
+}
+
+/* Адаптивная ширина input полей */
+body.am8-active .am8-fields-grid .address-field.am8-only .form-input {
+    width: 100%; /* Поля занимают всю ширину контейнера */
+    min-width: 80px; /* Минимальная ширина для 3-значных чисел */
+    max-width: none; /* Убираем ограничение max-width */
+}
+
+/* Стили для кнопки в правой группе - справа, выровнена с первым рядом */
+body.am8-active .am8-address-container .am8-button-container.am8-only {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    margin-top: 20px; /* Выравниваем с первым рядом полей */
+    flex-shrink: 0;
+    margin-left: 1rem; /* Отступ от сетки полей */
+    gap: 0.5rem;
+}
+
+/* Стили для контейнера автозапроса AM8 */
+.am8-autorequest-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-input {
+    margin: 0;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    margin: 0;
 }
 
 /* AM8 buttons-container removed - using am8-button-container inside grid */

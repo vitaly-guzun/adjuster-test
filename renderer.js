@@ -11,6 +11,12 @@ class RS485Adjuster {
         this.loadedTabs = new Map(); // Cache for loaded tab templates
         this.currentTab = 'am1'; // Default tab
         this.waitingForRangeResponse = false; // Flag for waiting address range response
+        this.waitingForRangeResponseAm8 = false; // Flag for waiting AM8 address range response
+        
+        // AM8 autowrite variables
+        this.autowriteEnabledAm8 = false; // Flag for AM8 autowrite mode
+        this.currentAddressIndexAm8 = 0; // Current address index for AM8 autowrite
+        this.am8Addresses = []; // Array of 8 addresses for AM8 autowrite
         
         this.initializeElements();
         this.bindEvents();
@@ -159,6 +165,10 @@ class RS485Adjuster {
         this.writeBtnSensors = document.getElementById('writeBtnSensors');
         this.requestRangeBtn = document.getElementById('requestRangeBtn');
         this.addressRangeSelect = document.getElementById('address-range');
+        this.requestRangeBtnAm8 = document.getElementById('requestRangeBtnAm8');
+        this.am8StartAddress = document.getElementById('am8-start-address');
+        this.am8EndAddress = document.getElementById('am8-end-address');
+        this.autorequestCheckboxAm8 = document.getElementById('autorequestCheckboxAm8');
         this.autorequestCheckboxKl = document.getElementById('autorequestCheckboxKl');
         
         // Bind events for new elements
@@ -192,6 +202,20 @@ class RS485Adjuster {
         if (this.requestRangeBtn && !this.requestRangeBtn._eventBound) {
             this.requestRangeBtn.addEventListener('click', () => this.requestAddressRange());
             this.requestRangeBtn._eventBound = true;
+        }
+        
+        // Bind events for AM8 address range request button
+        if (this.requestRangeBtnAm8 && !this.requestRangeBtnAm8._eventBound) {
+            this.requestRangeBtnAm8.addEventListener('click', () => this.requestAddressRangeAm8());
+            this.requestRangeBtnAm8._eventBound = true;
+        }
+        
+        // Bind events for AM8 autorequest checkbox
+        if (this.autorequestCheckboxAm8) {
+            this.autorequestCheckboxAm8.addEventListener('change', (e) => {
+                this.autowriteEnabledAm8 = e.target.checked;
+                this.logMessage(`AM8 Автозапрос ${this.autowriteEnabledAm8 ? 'включен' : 'отключен'}`);
+            });
         }
         
         // Bind events for KL autorequest checkbox
@@ -485,6 +509,18 @@ class RS485Adjuster {
                 activeButton.disabled = true;
             }
 
+            // Handle AM8 autowrite logic
+            if (this.currentTab === 'am8' && this.autowriteEnabledAm8) {
+                // Start AM8 autowrite sequence
+                this.currentAddressIndexAm8 = 0;
+                this.performAm8Autowrite();
+                if (activeButton) {
+                    this.hideLoading(activeButton);
+                    activeButton.disabled = false;
+                }
+                return; // Exit early for AM8 autowrite
+            }
+            
             // Get current parameters from the active tab
             const parameters = this.getCurrentParameters();
 
@@ -621,6 +657,102 @@ class RS485Adjuster {
         return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
     }
 
+    async requestAddressRangeAm8() {
+        if (!this.isConnected) {
+            this.showToast('warning', 'Сначала подключитесь к устройству');
+            return;
+        }
+
+        try {
+            // Show loading on button
+            if (this.requestRangeBtnAm8) {
+                this.showLoading(this.requestRangeBtnAm8);
+                this.requestRangeBtnAm8.disabled = true;
+            }
+
+            // Get start and end addresses from form fields
+            const startAddress = this.am8StartAddress ? parseInt(this.am8StartAddress.value) : 1;
+            const endAddress = this.am8EndAddress ? parseInt(this.am8EndAddress.value) : 8;
+            
+            // Validate addresses (must be 2 digits: 10-99)
+            if (startAddress < 10 || startAddress > 99) {
+                throw new Error('Начальный адрес должен быть двухзначным числом (10-99)');
+            }
+            
+            if (endAddress < 10 || endAddress > 99) {
+                throw new Error('Конечный адрес должен быть двухзначным числом (10-99)');
+            }
+            
+            if (startAddress > endAddress) {
+                throw new Error('Начальный адрес не может быть больше конечного');
+            }
+            
+            // Create 5-byte request command
+            const command = this.createAddressRangeRequestAm8(startAddress, endAddress);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', command);
+
+            if (result.success) {
+                this.showToast('success', `Запрос диапазона адресов ${startAddress}-${endAddress} отправлен`);
+                this.logMessage(`Запрос диапазона адресов AM8: ${command}`);
+                // Set flag to wait for response (AM8 specific)
+                this.waitingForRangeResponseAm8 = true;
+                
+                // Set timeout to reset button if no response received
+                setTimeout(() => {
+                    if (this.waitingForRangeResponseAm8) {
+                        this.waitingForRangeResponseAm8 = false;
+                        if (this.requestRangeBtnAm8) {
+                            this.hideLoading(this.requestRangeBtnAm8);
+                            this.requestRangeBtnAm8.disabled = false;
+                        }
+                        this.showToast('warning', 'Тайм-аут ожидания ответа от устройства');
+                    }
+                }, 10000); // 10 second timeout
+                
+            } else {
+                this.showToast('error', 'Ошибка отправки запроса: ' + result.message);
+                // Hide loading and enable button on error
+                if (this.requestRangeBtnAm8) {
+                    this.hideLoading(this.requestRangeBtnAm8);
+                    this.requestRangeBtnAm8.disabled = false;
+                }
+            }
+        } catch (error) {
+            this.showToast('error', 'Ошибка запроса диапазона: ' + error.message);
+            // Hide loading and enable button on error
+            if (this.requestRangeBtnAm8) {
+                this.hideLoading(this.requestRangeBtnAm8);
+                this.requestRangeBtnAm8.disabled = false;
+            }
+        }
+    }
+
+    createAddressRangeRequestAm8(startAddress, endAddress) {
+        // Create 5-byte command for address range request (AM8 version)
+        // Format: [Command Byte][Start Address][End Address][Checksum Low][Checksum High]
+        
+        const commandByte = 0x51; // Same command byte as AM1
+        
+        // Calculate checksum (simple XOR of first 3 bytes)
+        const checksum = commandByte ^ (startAddress & 0xFF) ^ (endAddress & 0xFF);
+        const checksumLow = checksum & 0xFF;
+        const checksumHigh = (checksum >> 8) & 0xFF;
+        
+        // Create byte array
+        const commandBytes = [
+            commandByte,
+            startAddress & 0xFF,
+            endAddress & 0xFF,
+            checksumLow,
+            checksumHigh
+        ];
+        
+        // Convert to hex string for transmission
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
     parseAddressRangeResponse(responseData) {
         // Parse 24-byte response containing: Address, Power Status, Input Status
         // Expected format: 24 bytes of hex data or raw binary data
@@ -686,6 +818,70 @@ class RS485Adjuster {
             console.error('Error parsing address range response:', error);
             console.error('Response data:', responseData);
             throw new Error('Failed to parse device response: ' + error.message);
+        }
+    }
+
+    parseAddressRangeResponseAm8(responseData) {
+        // Parse AM8 response containing: 8 addresses, power status, 9 inputs
+        // Expected format: longer response with device information for AM8
+        try {
+            let bytes = [];
+            
+            // Check if data is already in hex string format
+            if (typeof responseData === 'string') {
+                // Remove any whitespace, separators and convert to uppercase
+                const cleanData = responseData.replace(/[\s\-:]/g, '').toUpperCase();
+                
+                // Check if it's valid hex
+                if (/^[0-9A-F]+$/.test(cleanData)) {
+                    // Parse hex string to bytes
+                    for (let i = 0; i < cleanData.length; i += 2) {
+                        const hexByte = cleanData.substr(i, 2);
+                        bytes.push(parseInt(hexByte, 16));
+                    }
+                } else {
+                    // Try to parse as space-separated bytes or other format
+                    const parts = responseData.trim().split(/\s+/);
+                    bytes = parts.map(part => {
+                        const num = parseInt(part, 16);
+                        if (isNaN(num)) throw new Error(`Invalid hex byte: ${part}`);
+                        return num;
+                    });
+                }
+            } else if (Array.isArray(responseData)) {
+                bytes = responseData;
+            } else {
+                throw new Error('Unsupported response data format');
+            }
+
+            // AM8 response structure (assuming):
+            // Bytes 0-7: 8 addresses on device
+            // Byte 8: Power status
+            // Bytes 9-17: 9 input statuses
+            
+            if (bytes.length < 18) {
+                throw new Error(`Invalid AM8 response length: expected at least 18 bytes, got ${bytes.length}`);
+            }
+
+            const am8DeviceInfo = {
+                addresses: bytes.slice(0, 8), // First 8 bytes: addresses (1-247)
+                powerStatus: bytes[8], // Byte 8: power status (0=off, 1=on)
+                inputs: bytes.slice(9, 18), // Bytes 9-17: 9 input statuses (0=open, 1=closed, 2=no data)
+                rawData: bytes
+            };
+
+            // Validate addresses
+            for (let i = 0; i < am8DeviceInfo.addresses.length; i++) {
+                if (am8DeviceInfo.addresses[i] < 1 || am8DeviceInfo.addresses[i] > 247) {
+                    console.warn(`Invalid address at position ${i}: ${am8DeviceInfo.addresses[i]}`);
+                }
+            }
+
+            return am8DeviceInfo;
+        } catch (error) {
+            console.error('Error parsing AM8 address range response:', error);
+            console.error('Response data:', responseData);
+            throw new Error('Failed to parse AM8 device response: ' + error.message);
         }
     }
 
@@ -801,10 +997,243 @@ class RS485Adjuster {
         return false; // Row not found
     }
 
+    updateTestResultRowAm8(address, deviceInfo) {
+        // Find the row for the specific address and update it with device information for AM8
+        const rows = this.testResults.querySelectorAll('.table-row.am8-only');
+        
+        for (const row of rows) {
+            const addressCell = row.querySelector('.table-cell:first-child');
+            if (addressCell && parseInt(addressCell.textContent) === address) {
+                // Update address cell if needed
+                addressCell.textContent = deviceInfo.address;
+                
+                // Update power status
+                const powerStatus = row.querySelector('.table-cell:nth-child(2) .status-indicator');
+                if (powerStatus) {
+                    if (deviceInfo.powerStatus === 1) {
+                        powerStatus.className = 'status-indicator online';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                    } else {
+                        powerStatus.className = 'status-indicator offline';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                    }
+                }
+                
+                // Update input status
+                const inputStatus = row.querySelector('.table-cell:nth-child(3) .input-status-indicator');
+                if (inputStatus) {
+                    if (deviceInfo.inputStatus === 0) {
+                        inputStatus.className = 'input-status-indicator open';
+                    } else if (deviceInfo.inputStatus === 1) {
+                        inputStatus.className = 'input-status-indicator closed';
+                    } else {
+                        inputStatus.className = 'input-status-indicator no-data';
+                    }
+                }
+                
+                return true; // Row updated successfully
+            }
+        }
+        
+        // If row not found, update the first AM8 row with the found device info
+        if (this.currentTab === 'am8') {
+            const firstRow = this.testResults.querySelector('.table-row.am8-only');
+            if (firstRow) {
+                const addressCell = firstRow.querySelector('.table-cell:first-child');
+                if (addressCell) {
+                    // Update the first row with the found device info
+                    addressCell.textContent = deviceInfo.address;
+                    
+                    // Update power status
+                    const powerStatus = firstRow.querySelector('.table-cell:nth-child(2) .status-indicator');
+                    if (powerStatus) {
+                        if (deviceInfo.powerStatus === 1) {
+                            powerStatus.className = 'status-indicator online';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                        } else {
+                            powerStatus.className = 'status-indicator offline';
+                            powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                        }
+                    }
+                    
+                    // Update input status
+                    const inputStatus = firstRow.querySelector('.table-cell:nth-child(3) .input-status-indicator');
+                    if (inputStatus) {
+                        if (deviceInfo.inputStatus === 0) {
+                            inputStatus.className = 'input-status-indicator open';
+                        } else if (deviceInfo.inputStatus === 1) {
+                            inputStatus.className = 'input-status-indicator closed';
+                        } else {
+                            inputStatus.className = 'input-status-indicator no-data';
+                        }
+                    }
+                    
+                    return true; // Row updated successfully
+                }
+            }
+        }
+        
+        return false; // Row not found
+    }
+
+    updateTestResultTableAm8(am8DeviceInfo) {
+        // Update AM8 test results table with all 8 addresses, power status and 9 inputs
+        const rows = this.testResults.querySelectorAll('.table-row.am8-only');
+        
+        // Update each row with corresponding address data
+        for (let i = 0; i < Math.min(rows.length, 8); i++) {
+            const row = rows[i];
+            const addressCell = row.querySelector('.table-cell:first-child');
+            
+            if (addressCell && am8DeviceInfo.addresses[i]) {
+                // Update address
+                addressCell.textContent = am8DeviceInfo.addresses[i];
+                
+                // Update power status (same for all addresses)
+                const powerStatus = row.querySelector('.table-cell:nth-child(2) .status-indicator');
+                if (powerStatus) {
+                    if (am8DeviceInfo.powerStatus === 1) {
+                        powerStatus.className = 'status-indicator online';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Подключено';
+                    } else {
+                        powerStatus.className = 'status-indicator offline';
+                        powerStatus.innerHTML = '<i class="fas fa-power-off"></i> Отключено';
+                    }
+                }
+                
+                // Update input status (use corresponding input for this address)
+                const inputStatus = row.querySelector('.table-cell:nth-child(3) .input-status-indicator');
+                if (inputStatus && am8DeviceInfo.inputs[i]) {
+                    const inputValue = am8DeviceInfo.inputs[i];
+                    if (inputValue === 0) {
+                        inputStatus.className = 'input-status-indicator open';
+                    } else if (inputValue === 1) {
+                        inputStatus.className = 'input-status-indicator closed';
+                    } else {
+                        inputStatus.className = 'input-status-indicator no-data';
+                    }
+                }
+            }
+        }
+    }
+
+    async writeAddressAm8(addressIndex) {
+        // Write single address for AM8 autowrite mode
+        if (!this.isConnected) {
+            this.showToast('warning', 'Сначала подключитесь к устройству');
+            return false;
+        }
+
+        try {
+            // Get address from corresponding input field
+            const addressInputs = [
+                'address1-am8', 'address2', 'address3', 'address4', 
+                'address5', 'address6', 'address7', 'address8'
+            ];
+            
+            const addressInputId = addressInputs[addressIndex];
+            const addressInput = document.getElementById(addressInputId);
+            
+            if (!addressInput) {
+                throw new Error(`Address input field ${addressInputId} not found`);
+            }
+            
+            const newAddress = parseInt(addressInput.value);
+            if (isNaN(newAddress) || newAddress < 1 || newAddress > 247) {
+                throw new Error(`Invalid address: ${newAddress}`);
+            }
+            
+            // Create write command for this address
+            const command = this.createWriteAddressCommandAm8(addressIndex, newAddress);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', command);
+            
+            if (result.success) {
+                this.logMessage(`AM8: Запись адреса ${newAddress} в позицию ${addressIndex + 1} отправлена`);
+                return true;
+            } else {
+                this.showToast('error', `Ошибка записи адреса ${newAddress}: ${result.message}`);
+                return false;
+            }
+            
+        } catch (error) {
+            this.showToast('error', `Ошибка записи адреса: ${error.message}`);
+            return false;
+        }
+    }
+
+    createWriteAddressCommandAm8(addressIndex, newAddress) {
+        // Create 5-byte command for writing single address in AM8
+        // Format: [Command Byte][Address Index][New Address][Checksum Low][Checksum High]
+        
+        const commandByte = 0x52; // Command byte for AM8 address write
+        
+        // Calculate checksum (simple XOR of first 3 bytes)
+        const checksum = commandByte ^ (addressIndex & 0xFF) ^ (newAddress & 0xFF);
+        const checksumLow = checksum & 0xFF;
+        const checksumHigh = (checksum >> 8) & 0xFF;
+        
+        // Create byte array
+        const commandBytes = [
+            commandByte,
+            addressIndex & 0xFF,
+            newAddress & 0xFF,
+            checksumLow,
+            checksumHigh
+        ];
+        
+        // Convert to hex string for transmission
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    async performAm8Autowrite() {
+        // Perform sequential write of all 8 addresses for AM8
+        if (this.currentAddressIndexAm8 >= 8) {
+            // All addresses written, finish autowrite
+            this.showToast('success', 'AM8: Все адреса записаны');
+            this.autowriteEnabledAm8 = false;
+            this.currentAddressIndexAm8 = 0;
+            if (this.autorequestCheckboxAm8) {
+                this.autorequestCheckboxAm8.checked = false;
+            }
+            return;
+        }
+        
+        try {
+            const success = await this.writeAddressAm8(this.currentAddressIndexAm8);
+            
+            if (success) {
+                this.currentAddressIndexAm8++;
+                // Wait a bit before next write (500ms)
+                setTimeout(() => {
+                    if (this.autowriteEnabledAm8) {
+                        this.performAm8Autowrite();
+                    }
+                }, 500);
+            } else {
+                // Error occurred, stop autowrite
+                this.autowriteEnabledAm8 = false;
+                this.currentAddressIndexAm8 = 0;
+                if (this.autorequestCheckboxAm8) {
+                    this.autorequestCheckboxAm8.checked = false;
+                }
+            }
+            
+        } catch (error) {
+            this.showToast('error', `Ошибка автозаписи AM8: ${error.message}`);
+            this.autowriteEnabledAm8 = false;
+            this.currentAddressIndexAm8 = 0;
+            if (this.autorequestCheckboxAm8) {
+                this.autorequestCheckboxAm8.checked = false;
+            }
+        }
+    }
+
     handleSerialData(data) {
         this.logMessage(`Получено: ${data}`);
         
-        // Check if we're waiting for address range response
+        // Check if we're waiting for address range response (AM1)
         if (this.waitingForRangeResponse) {
             try {
                 // Parse the 24-byte response
@@ -833,6 +1262,34 @@ class RS485Adjuster {
                 if (this.requestRangeBtn) {
                     this.hideLoading(this.requestRangeBtn);
                     this.requestRangeBtn.disabled = false;
+                }
+            }
+        }
+        // Check if we're waiting for address range response (AM8)
+        else if (this.waitingForRangeResponseAm8) {
+            try {
+                // Parse the response for AM8 (8 addresses, power, 9 inputs)
+                const am8DeviceInfo = this.parseAddressRangeResponseAm8(data);
+                
+                // Update the test results table for AM8 with all 8 addresses
+                this.updateTestResultTableAm8(am8DeviceInfo);
+                
+                this.showToast('success', `AM8: Получена информация об устройстве`);
+                this.logMessage(`AM8 - Found device with addresses: ${am8DeviceInfo.addresses.join(', ')}, Power: ${am8DeviceInfo.powerStatus}, Inputs: ${am8DeviceInfo.inputs.join(', ')}`);
+                
+                // Reset waiting flag and enable button
+                this.waitingForRangeResponseAm8 = false;
+                if (this.requestRangeBtnAm8) {
+                    this.hideLoading(this.requestRangeBtnAm8);
+                    this.requestRangeBtnAm8.disabled = false;
+                }
+                
+            } catch (error) {
+                this.showToast('error', 'AM8: Ошибка обработки ответа: ' + error.message);
+                this.waitingForRangeResponseAm8 = false;
+                if (this.requestRangeBtnAm8) {
+                    this.hideLoading(this.requestRangeBtnAm8);
+                    this.requestRangeBtnAm8.disabled = false;
                 }
             }
         } else {

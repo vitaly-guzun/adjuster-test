@@ -152,45 +152,78 @@
                                 Записать адрес
                             </button>
                         </div>
-                        <!-- Поля для AM8 (8-канальное устройство) -->
-                        <div class="address-field am8-only">
-                            <label for="address1-am8">Адрес 1:</label>
-                            <input type="number" id="address1-am8" class="form-input" value="1" min="1" max="247">
+                        <!-- Группа для запроса диапазона AM8 -->
+                        <div class="am8-range-group am8-only">
+                            <div class="am8-range-controls-container">
+                                <div class="am8-fields-column">
+                                    <div class="address-field am8-only am8-range-control">
+                                        <label for="am8-start-address">Начальный адрес:</label>
+                                        <input type="number" id="am8-start-address" class="form-input" value="10" min="10" max="99">
+                                    </div>
+                                    <div class="address-field am8-only am8-range-control">
+                                        <label for="am8-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="am8-end-address" class="form-input" value="17" min="10" max="99">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов AM8 -->
+                                <div class="am8-button-container am8-only am8-range-control">
+                                    <button id="requestRangeBtnAm8" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="address-field am8-only">
-                            <label for="address2">Адрес 2:</label>
-                            <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address3">Адрес 3:</label>
-                            <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address4">Адрес 4:</label>
-                            <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address5">Адрес 5:</label>
-                            <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address6">Адрес 6:</label>
-                            <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address7">Адрес 7:</label>
-                            <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address8">Адрес 8:</label>
-                            <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
-                        </div>
-                        <!-- Кнопка для AM8 (внутри grid) -->
-                        <div class="am8-button-container am8-only">
-                            <button id="writeBtnAm8" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Записать
-                            </button>
+                        <!-- Группа для записи адресов AM8 -->
+                        <div class="am8-address-group am8-only">
+                            <div class="am8-address-container">
+                                <!-- Поля для AM8 (8-канальное устройство) -->
+                                <div class="am8-fields-grid">
+                                    <div class="address-field am8-only">
+                                        <label for="address1-am8">Адрес 1:</label>
+                                        <input type="number" id="address1-am8" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address2">Адрес 2:</label>
+                                        <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address3">Адрес 3:</label>
+                                        <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address4">Адрес 4:</label>
+                                        <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address5">Адрес 5:</label>
+                                        <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address6">Адрес 6:</label>
+                                        <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address7">Адрес 7:</label>
+                                        <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address8">Адрес 8:</label>
+                                        <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
+                                    </div>
+                                </div>
+                                <!-- Кнопка и чекбокс для AM8 (справа) -->
+                                <div class="am8-button-container am8-only">
+                                    <button id="writeBtnAm8" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                    <div class="am8-autorequest-container">
+                                        <input type="checkbox" id="autorequestCheckboxAm8" class="checkbox-input">
+                                        <label for="autorequestCheckboxAm8" class="checkbox-label">Автозапрос</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <!-- Поля для PM (4-канальный релейный модуль) -->
                         <div class="address-field pm-only">
