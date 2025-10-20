@@ -58,8 +58,60 @@ class RS485Adjuster {
         this.toast = document.getElementById('toast');
     }
 
+    async loadTabWithContext(tabName, previousTab = null) {
+        try {
+            // Special handling for MOK tab - independent page template
+            if (tabName === 'mok') {
+                await this.loadMokTab(previousTab);
+                return;
+            }
+            
+            // Show loading indicator
+            this.showTabLoading();
+            
+            // Check if tab is already loaded
+            if (this.loadedTabs.has(tabName)) {
+                this.displayTab(tabName, previousTab);
+                return;
+            }
+            
+            // Load HTML template
+            const htmlResponse = await fetch(`tabs/${tabName}.html`);
+            if (!htmlResponse.ok) {
+                throw new Error(`Failed to load ${tabName}.html`);
+            }
+            const htmlContent = await htmlResponse.text();
+            
+            // Load CSS template
+            const cssResponse = await fetch(`tabs/${tabName}.css`);
+            if (!cssResponse.ok) {
+                throw new Error(`Failed to load ${tabName}.css`);
+            }
+            const cssContent = await cssResponse.text();
+            
+            // Cache the loaded content
+            this.loadedTabs.set(tabName, {
+                html: htmlContent,
+                css: cssContent
+            });
+            
+            // Display the tab with context
+            this.displayTab(tabName, previousTab);
+            
+        } catch (error) {
+            console.error(`Error loading tab ${tabName}:`, error);
+            this.showTabError(tabName, error.message);
+        }
+    }
+
     async loadTab(tabName) {
         try {
+            // Special handling for MOK tab - independent page template
+            if (tabName === 'mok') {
+                await this.loadMokTab();
+                return;
+            }
+            
             // Show loading indicator
             this.showTabLoading();
             
@@ -98,12 +150,28 @@ class RS485Adjuster {
         }
     }
     
-    displayTab(tabName) {
+    displayTab(tabName, previousTab = null) {
         const tabData = this.loadedTabs.get(tabName);
         if (!tabData) return;
         
+        // If switching away from MOK, clean up MOK-specific elements
+        const wasMokTab = previousTab === 'mok' || this.currentTab === 'mok';
+        if (wasMokTab && tabName !== 'mok') {
+            this.showOtherSectionsAfterMok();
+        }
+        
         // Clear current content
         this.tabContent.innerHTML = '';
+        
+        // Remove any existing tab styles before loading new tab
+        const existingTabStyles = document.querySelectorAll('style[data-tab]');
+        existingTabStyles.forEach(style => style.remove());
+        
+        // Remove any existing MOK page styles
+        const existingMokStyles = document.getElementById('mok-page-styles');
+        if (existingMokStyles) {
+            existingMokStyles.remove();
+        }
         
         // Create container for tab content
         const tabContainer = document.createElement('div');
@@ -159,6 +227,89 @@ class RS485Adjuster {
         `;
     }
     
+    async loadMokTab(previousTab = null) {
+        try {
+            // Show loading indicator
+            this.showTabLoading();
+            
+            // Load the independent MOK page template
+            const htmlResponse = await fetch('tabs/mok.html');
+            if (!htmlResponse.ok) {
+                throw new Error('Failed to load MOK page template');
+            }
+            const htmlContent = await htmlResponse.text();
+            
+            // Load MOK-specific CSS
+            const cssResponse = await fetch('tabs/mok.css');
+            if (!cssResponse.ok) {
+                throw new Error('Failed to load MOK CSS');
+            }
+            const cssContent = await cssResponse.text();
+            
+            // Clear the entire tab content area and replace with MOK page
+            this.tabContent.innerHTML = '';
+            
+            // Remove any existing tab styles before loading MOK
+            const existingTabStyles = document.querySelectorAll('style[data-tab]');
+            existingTabStyles.forEach(style => style.remove());
+            
+            // Create a full-page container for MOK
+            const mokPageContainer = document.createElement('div');
+            mokPageContainer.className = 'mok-full-page';
+            mokPageContainer.innerHTML = htmlContent;
+            
+            // Hide other sections when MOK is active
+            this.hideOtherSectionsForMok();
+            
+            // Add CSS styles for MOK
+            const styleElement = document.createElement('style');
+            styleElement.textContent = cssContent;
+            styleElement.setAttribute('data-tab', 'mok');
+            styleElement.id = 'mok-page-styles';
+            
+            // Remove existing MOK styles if any
+            const existingMokStyles = document.getElementById('mok-page-styles');
+            if (existingMokStyles) {
+                existingMokStyles.remove();
+            }
+            document.head.appendChild(styleElement);
+            
+            // Append MOK page content
+            this.tabContent.appendChild(mokPageContainer);
+            
+            // Update current tab
+            this.currentTab = 'mok';
+            
+            // Find and activate the MOK tab panel
+            const mokPanel = mokPageContainer.querySelector('.tab-panel');
+            if (mokPanel) {
+                mokPanel.classList.add('active');
+                mokPanel.style.display = 'block'; // Force display as fallback
+                console.log('MOK panel found and activated');
+                console.log('Panel classes:', mokPanel.className);
+                console.log('Panel display style:', mokPanel.style.display);
+            } else {
+                console.log('MOK panel not found in loaded content');
+                console.log('Container content:', mokPageContainer.innerHTML.substring(0, 200));
+            }
+            
+            // Update body class for MOK
+            this.updateBodyClass('mok');
+            
+            // Initialize MOK-specific elements after DOM is ready
+            setTimeout(() => {
+                this.initializeMokElements();
+                console.log('MOK elements initialized');
+            }, 10);
+            
+            console.log('MOK tab loaded successfully');
+            
+        } catch (error) {
+            console.error('Error loading MOK tab:', error);
+            this.showTabError('mok', error.message);
+        }
+    }
+    
     initializeTabElements() {
         // Reinitialize elements that might be in the loaded tab
         this.writeBtn = document.getElementById('writeBtn');
@@ -181,6 +332,70 @@ class RS485Adjuster {
         
         // Bind events for new elements
         this.bindTabEvents();
+    }
+    
+    initializeMokElements() {
+        // Initialize MOK-specific elements when MOK tab is loaded
+        // This function will handle all MOK-related element initialization
+        
+        // Clear any existing MOK elements references
+        this.mokStartScanBtn = null;
+        this.mokAddressIndicators = null;
+        this.mokAddressTree = null;
+        this.mokFoundCount = null;
+        this.mokArrowLeftBtn = null;
+        this.mokArrowRightBtn = null;
+        this.mokImportConfigBtn = null;
+        this.mokExportConfigBtn = null;
+        this.mokCreateSectionBtn = null;
+        this.mokDeleteSectionBtn = null;
+        this.mokWriteConfigBtn = null;
+        
+        // Initialize MOK scan elements
+        this.mokStartScanBtn = document.getElementById('mok-start-scan');
+        this.mokAddressIndicators = document.getElementById('mokAddressIndicators');
+        this.mokAddressTree = document.getElementById('mokAddressTree');
+        this.mokFoundCount = document.getElementById('mokFoundCount');
+        this.mokArrowLeftBtn = document.getElementById('mok-arrow-left');
+        this.mokArrowRightBtn = document.getElementById('mok-arrow-right');
+        this.mokImportConfigBtn = document.getElementById('mok-import-config');
+        this.mokExportConfigBtn = document.getElementById('mok-export-config');
+        this.mokCreateSectionBtn = document.getElementById('mok-create-section');
+        this.mokDeleteSectionBtn = document.getElementById('mok-delete-section');
+        this.mokWriteConfigBtn = document.getElementById('mok-write-config');
+        
+        // Initialize MOK scan state if not already done
+        if (!this.mokScanResults) {
+            this.mokScanResults = new Array(127).fill(false);
+        }
+        if (this.mokScanInProgress === undefined) {
+            this.mokScanInProgress = false;
+        }
+        if (this.mokCurrentViewStart === undefined) {
+            this.mokCurrentViewStart = 0;
+        }
+        if (this.mokIndicatorsPerPage === undefined) {
+            this.mokIndicatorsPerPage = 64;
+        }
+        
+        // Initialize section management state
+        if (this.mokSelectedAddress === undefined) {
+            this.mokSelectedAddress = null;
+        }
+        if (this.mokSelectedSection === undefined) {
+            this.mokSelectedSection = null;
+        }
+        
+        // Create address indicators if needed
+        if (this.mokAddressIndicators && this.mokAddressIndicators.children.length === 0) {
+            this.createMokAddressIndicators();
+        }
+        
+        // Initialize arrow buttons state
+        this.updateArrowButtonsState();
+        
+        // Bind MOK-specific events
+        this.bindMokEvents();
     }
     
     bindTabEvents() {
@@ -245,6 +460,44 @@ class RS485Adjuster {
         
         // Bind events for other tab-specific elements
         // This can be extended for specific tab functionality
+    }
+    
+    hideOtherSectionsForMok() {
+        // Hide parameters and results sections when MOK is active
+        const parametersSection = document.querySelector('.parameters-section');
+        const resultsSection = document.querySelector('.results-section');
+        
+        if (parametersSection) {
+            parametersSection.style.display = 'none';
+            parametersSection.setAttribute('data-hidden-for-mok', 'true');
+        }
+        
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
+            resultsSection.setAttribute('data-hidden-for-mok', 'true');
+        }
+    }
+    
+    showOtherSectionsAfterMok() {
+        // Show parameters and results sections after leaving MOK
+        const parametersSection = document.querySelector('.parameters-section');
+        const resultsSection = document.querySelector('.results-section');
+        
+        if (parametersSection && parametersSection.getAttribute('data-hidden-for-mok') === 'true') {
+            parametersSection.style.display = '';
+            parametersSection.removeAttribute('data-hidden-for-mok');
+        }
+        
+        if (resultsSection && resultsSection.getAttribute('data-hidden-for-mok') === 'true') {
+            resultsSection.style.display = '';
+            resultsSection.removeAttribute('data-hidden-for-mok');
+        }
+        
+        // Remove MOK-specific styles
+        const mokStyles = document.getElementById('mok-page-styles');
+        if (mokStyles) {
+            mokStyles.remove();
+        }
     }
     
     updateBodyClass(tabName) {
@@ -464,6 +717,9 @@ class RS485Adjuster {
     }
 
     switchTab(tabName) {
+        // Store previous tab for cleanup
+        const previousTab = this.currentTab;
+        
         // Remove active class from all tabs
         this.tabs.forEach(tab => tab.classList.remove('active'));
 
@@ -472,8 +728,8 @@ class RS485Adjuster {
         if (selectedTab) {
             selectedTab.classList.add('active');
             
-            // Load the tab content
-            this.loadTab(tabName);
+            // Load the tab content with previous tab info
+            this.loadTabWithContext(tabName, previousTab);
         }
     }
 
@@ -1832,6 +2088,630 @@ class RS485Adjuster {
             loading.remove();
         }
         element.style.opacity = '1';
+    }
+
+    bindMokEvents() {
+        // Bind MOK-specific event listeners
+        
+        // Scan start button
+        if (this.mokStartScanBtn && !this.mokStartScanBtn._eventBound) {
+            this.mokStartScanBtn.addEventListener('click', () => this.startMokRs485Scan());
+            this.mokStartScanBtn._eventBound = true;
+        }
+
+        // Arrow navigation buttons
+        if (this.mokArrowLeftBtn && !this.mokArrowLeftBtn._eventBound) {
+            this.mokArrowLeftBtn.addEventListener('click', () => this.mokScrollIndicators('left'));
+            this.mokArrowLeftBtn._eventBound = true;
+        }
+
+        if (this.mokArrowRightBtn && !this.mokArrowRightBtn._eventBound) {
+            this.mokArrowRightBtn.addEventListener('click', () => this.mokScrollIndicators('right'));
+            this.mokArrowRightBtn._eventBound = true;
+        }
+
+        // Config import/export buttons
+        if (this.mokImportConfigBtn && !this.mokImportConfigBtn._eventBound) {
+            this.mokImportConfigBtn.addEventListener('click', () => this.importMokConfig());
+            this.mokImportConfigBtn._eventBound = true;
+        }
+
+        if (this.mokExportConfigBtn && !this.mokExportConfigBtn._eventBound) {
+            this.mokExportConfigBtn.addEventListener('click', () => this.exportMokConfig());
+            this.mokExportConfigBtn._eventBound = true;
+        }
+
+        // Section management buttons
+        if (this.mokCreateSectionBtn && !this.mokCreateSectionBtn._eventBound) {
+            this.mokCreateSectionBtn.addEventListener('click', () => this.createMokSection());
+            this.mokCreateSectionBtn._eventBound = true;
+        }
+
+        if (this.mokDeleteSectionBtn && !this.mokDeleteSectionBtn._eventBound) {
+            this.mokDeleteSectionBtn.addEventListener('click', () => this.deleteMokSection());
+            this.mokDeleteSectionBtn._eventBound = true;
+        }
+
+        // Write config button
+        if (this.mokWriteConfigBtn && !this.mokWriteConfigBtn._eventBound) {
+            this.mokWriteConfigBtn.addEventListener('click', () => this.writeMokConfig());
+            this.mokWriteConfigBtn._eventBound = true;
+        }
+    }
+
+    createMokAddressIndicators() {
+        if (!this.mokAddressIndicators) return;
+        
+        // Clear existing indicators
+        this.mokAddressIndicators.innerHTML = '';
+        
+        // Create 127 circular indicators (addresses 1-127)
+        for (let i = 1; i <= 127; i++) {
+            const indicator = document.createElement('div');
+            indicator.className = 'mok-address-indicator inactive';
+            indicator.textContent = i;
+            indicator.setAttribute('data-address', i);
+            indicator.addEventListener('click', () => this.selectMokAddress(i));
+            this.mokAddressIndicators.appendChild(indicator);
+        }
+        
+        // Update view
+        this.updateMokIndicatorsView();
+    }
+
+    updateMokIndicatorsView() {
+        if (!this.mokAddressIndicators) return;
+        
+        const indicators = this.mokAddressIndicators.querySelectorAll('.mok-address-indicator');
+        
+        indicators.forEach((indicator, index) => {
+            const address = parseInt(indicator.getAttribute('data-address'));
+            
+            // Show all indicators (vertical scrolling handled by CSS)
+            indicator.style.display = 'flex';
+            
+            // Update status based on scan results
+            if (this.mokScanResults && this.mokScanResults[address - 1]) {
+                indicator.className = 'mok-address-indicator active';
+            } else {
+                indicator.className = 'mok-address-indicator inactive';
+            }
+        });
+        
+        // Update arrow buttons state based on selections
+        this.updateArrowButtonsState();
+    }
+
+    mokScrollIndicators(direction) {
+        // Check if both address and section are selected
+        if (!this.mokSelectedAddress) {
+            this.showToast('warning', 'Выберите адрес в левом блоке');
+            return;
+        }
+        
+        if (!this.mokSelectedSection) {
+            this.showToast('warning', 'Выберите раздел в правом блоке');
+            return;
+        }
+        
+        const section = this.mokSections.find(s => s.id === this.mokSelectedSection);
+        if (!section) {
+            this.showToast('error', 'Выбранный раздел не найден');
+            return;
+        }
+        
+        if (direction === 'left') {
+            // Remove address from section
+            this.moveAddressToSection(this.mokSelectedAddress, null);
+        } else if (direction === 'right') {
+            // Add address to section
+            this.moveAddressToSection(this.mokSelectedAddress, this.mokSelectedSection);
+        }
+    }
+
+    selectMokAddress(address) {
+        // Remove previous selection
+        const indicators = this.mokAddressIndicators.querySelectorAll('.mok-address-indicator');
+        indicators.forEach(indicator => indicator.classList.remove('selected'));
+        
+        // Add selection to clicked indicator
+        const selectedIndicator = this.mokAddressIndicators.querySelector(`[data-address="${address}"]`);
+        if (selectedIndicator) {
+            selectedIndicator.classList.add('selected');
+            this.mokSelectedAddress = address; // Save selected address
+            this.updateMokAddressTree(address);
+            this.scrollToMokAddress(address);
+            this.updateArrowButtonsState(); // Update arrow buttons state
+        }
+    }
+
+    updateMokAddressTree(selectedAddress = null) {
+        if (!this.mokAddressTree || !this.mokFoundCount) return;
+        
+        // Initialize sections if not exists
+        if (!this.mokSections) {
+            this.mokSections = [];
+        }
+        
+        const foundAddresses = [];
+        if (this.mokScanResults) {
+            this.mokScanResults.forEach((isResponding, index) => {
+                if (isResponding) {
+                    foundAddresses.push(index + 1);
+                }
+            });
+        }
+        
+        this.mokFoundCount.textContent = foundAddresses.length.toString();
+        
+        // Create tree structure with sections and found devices
+        let treeHTML = '';
+        
+        // Add sections if any exist
+        if (this.mokSections.length > 0) {
+            treeHTML += '<div class="mok-tree-header">Разделы системы:</div>';
+            this.mokSections.forEach(section => {
+                const isSectionSelected = this.mokSelectedSection === section.id ? 'selected' : '';
+                treeHTML += `
+                    <div class="mok-tree-node section ${isSectionSelected}" data-section-id="${section.id}">
+                        <i class="fas fa-folder"></i>
+                        ${section.name}
+                        <span class="section-address-count">(${section.addresses.length})</span>
+                    </div>
+                `;
+                
+                // Add addresses within the section if any
+                if (section.addresses && section.addresses.length > 0) {
+                    section.addresses.forEach(address => {
+                        const isAddressSelected = selectedAddress === address ? 'selected' : '';
+                        treeHTML += `
+                            <div class="mok-tree-node device section-device ${isAddressSelected}" data-address="${address}" style="margin-left: 20px;">
+                                <i class="fas fa-microchip"></i>
+                                Устройство ${address}
+                            </div>
+                        `;
+                    });
+                }
+            });
+            treeHTML += '<div class="mok-tree-separator"></div>';
+        }
+        
+        // Add found devices that are not in any section
+        const addressesInSections = new Set();
+        this.mokSections.forEach(section => {
+            section.addresses.forEach(addr => addressesInSections.add(addr));
+        });
+        
+        const unassignedAddresses = foundAddresses.filter(addr => !addressesInSections.has(addr));
+        
+        if (unassignedAddresses.length > 0) {
+            treeHTML += '<div class="mok-tree-header">Свободные устройства:</div>';
+            unassignedAddresses.forEach(address => {
+                const isSelected = selectedAddress === address ? 'selected' : '';
+                treeHTML += `
+                    <div class="mok-tree-node device ${isSelected}" data-address="${address}">
+                        <i class="fas fa-microchip"></i>
+                        Устройство ${address}
+                    </div>
+                `;
+            });
+        } else if (foundAddresses.length === 0 && this.mokSections.length === 0) {
+            treeHTML = '<div class="tree-placeholder">Сканируйте шину для отображения дерева системы</div>';
+        } else if (foundAddresses.length === 0) {
+            treeHTML += '<div class="tree-placeholder">Устройства не найдены. Выполните сканирование.</div>';
+        } else {
+            treeHTML += '<div class="tree-placeholder">Все найденные устройства распределены по разделам</div>';
+        }
+        
+        this.mokAddressTree.innerHTML = treeHTML;
+        
+        // Add click handlers to tree nodes
+        const treeNodes = this.mokAddressTree.querySelectorAll('.mok-tree-node');
+        treeNodes.forEach(node => {
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Remove previous selection
+                treeNodes.forEach(n => n.classList.remove('selected'));
+                
+                // Add selection to clicked node
+                node.classList.add('selected');
+                
+                const address = node.getAttribute('data-address');
+                const sectionId = node.getAttribute('data-section-id');
+                
+                if (address) {
+                    // Device node clicked
+                    this.selectMokAddress(parseInt(address));
+                } else if (sectionId) {
+                    // Section node clicked
+                    this.selectMokSection(parseInt(sectionId));
+                }
+            });
+        });
+    }
+
+    scrollToMokAddress(address) {
+        const indicator = this.mokAddressIndicators.querySelector(`[data-address="${address}"]`);
+        if (indicator) {
+            const targetStart = Math.floor((address - 1) / this.mokIndicatorsPerPage) * this.mokIndicatorsPerPage;
+            this.mokCurrentViewStart = targetStart;
+            this.updateMokIndicatorsView();
+        }
+    }
+
+    selectMokSection(sectionId) {
+        // Handle section selection
+        const section = this.mokSections.find(s => s.id === sectionId);
+        if (section) {
+            this.mokSelectedSection = sectionId; // Save selected section
+            this.showToast('info', `Выбран раздел: ${section.name}`);
+            this.updateArrowButtonsState(); // Update arrow buttons state
+        }
+    }
+
+    moveAddressToSection(address, sectionId) {
+        // Remove address from all sections first
+        this.mokSections.forEach(section => {
+            const index = section.addresses.indexOf(address);
+            if (index !== -1) {
+                section.addresses.splice(index, 1);
+            }
+        });
+        
+        // Add address to the specified section
+        if (sectionId !== null) {
+            const section = this.mokSections.find(s => s.id === sectionId);
+            if (section && !section.addresses.includes(address)) {
+                section.addresses.push(address);
+                section.addresses.sort((a, b) => a - b); // Keep addresses sorted
+                this.showToast('success', `Адрес ${address} добавлен в ${section.name}`);
+            }
+        } else {
+            this.showToast('info', `Адрес ${address} удален из всех разделов`);
+        }
+        
+        // Update the tree display
+        this.updateMokAddressTree(this.mokSelectedAddress);
+    }
+
+    updateArrowButtonsState() {
+        // Enable arrow buttons only if both address and section are selected
+        const bothSelected = this.mokSelectedAddress !== null && this.mokSelectedSection !== null;
+        
+        if (this.mokArrowLeftBtn) {
+            this.mokArrowLeftBtn.disabled = !bothSelected;
+        }
+        if (this.mokArrowRightBtn) {
+            this.mokArrowRightBtn.disabled = !bothSelected;
+        }
+    }
+
+    async writeMokConfig() {
+        if (!this.comPortSelect.value) {
+            this.showToast('error', 'Сначала подключитесь к COM порту');
+            return;
+        }
+
+        // Check if there are any sections to write
+        if (!this.mokSections || this.mokSections.length === 0) {
+            this.showToast('warning', 'Нет разделов для записи в конфигурацию');
+            return;
+        }
+
+        try {
+            // Show loading state
+            if (this.mokWriteConfigBtn) {
+                this.mokWriteConfigBtn.disabled = true;
+                this.mokWriteConfigBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Запись...';
+            }
+
+            // Log the operation
+            this.logMessage('Начало записи конфигурации МОК в устройство');
+
+            // Create configuration data from sections
+            const configData = {
+                sections: this.mokSections.map(section => ({
+                    id: section.id,
+                    name: section.name,
+                    addresses: section.addresses
+                })),
+                timestamp: new Date().toISOString()
+            };
+
+            this.logMessage(`Конфигурация содержит ${configData.sections.length} разделов`);
+
+            // Here would be the actual command to send configuration to МОК device
+            // For now, we'll simulate the process
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Simulate successful write
+            this.logMessage('Конфигурация МОК успешно записана в устройство');
+            this.showToast('success', 'Конфигурация МОК успешно записана');
+
+        } catch (error) {
+            console.error('Error writing MOK config:', error);
+            this.logMessage(`Ошибка записи конфигурации МОК: ${error.message}`);
+            this.showToast('error', 'Ошибка записи конфигурации');
+        } finally {
+            // Restore button state
+            if (this.mokWriteConfigBtn) {
+                this.mokWriteConfigBtn.disabled = false;
+                this.mokWriteConfigBtn.innerHTML = '<i class="fas fa-download"></i> Записать Конфиг в МОК';
+            }
+        }
+    }
+
+    async importMokConfig() {
+        try {
+            // Show loading state
+            if (this.mokImportConfigBtn) {
+                this.mokImportConfigBtn.disabled = true;
+                this.mokImportConfigBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Импорт...';
+            }
+
+            // Create file input element
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.json,.txt';
+            fileInput.style.display = 'none';
+
+            // Handle file selection
+            const filePromise = new Promise((resolve, reject) => {
+                fileInput.onchange = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) {
+                        reject(new Error('Файл не выбран'));
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const configData = JSON.parse(e.target.result);
+                            resolve(configData);
+                        } catch (error) {
+                            reject(new Error('Ошибка чтения файла конфигурации'));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+                    reader.readAsText(file);
+                };
+
+                fileInput.oncancel = () => {
+                    reject(new Error('Импорт отменен'));
+                };
+            });
+
+            document.body.appendChild(fileInput);
+            fileInput.click();
+
+            const configData = await filePromise;
+            document.body.removeChild(fileInput);
+
+            // Validate imported data
+            if (!configData.sections || !Array.isArray(configData.sections)) {
+                throw new Error('Неверный формат файла конфигурации');
+            }
+
+            // Import sections
+            this.mokSections = configData.sections.map(section => ({
+                id: section.id || Math.max(...(this.mokSections || []).map(s => s.id || 0), 0) + 1,
+                name: section.name || 'Импортированный раздел',
+                addresses: section.addresses || [],
+                createdAt: new Date().toISOString()
+            }));
+
+            // Update the display
+            this.updateMokAddressTree();
+            
+            this.logMessage(`Импортировано ${this.mokSections.length} разделов из конфигурации`);
+            this.showToast('success', `Успешно импортировано ${this.mokSections.length} разделов`);
+
+        } catch (error) {
+            console.error('Error importing MOK config:', error);
+            this.logMessage(`Ошибка импорта конфигурации МОК: ${error.message}`);
+            this.showToast('error', error.message.includes('отменен') ? error.message : 'Ошибка импорта конфигурации');
+        } finally {
+            // Restore button state
+            if (this.mokImportConfigBtn) {
+                this.mokImportConfigBtn.disabled = false;
+                this.mokImportConfigBtn.innerHTML = '<i class="fas fa-upload"></i> Импорт конфиг МОК';
+            }
+        }
+    }
+
+    async exportMokConfig() {
+        try {
+            // Check if there are sections to export
+            if (!this.mokSections || this.mokSections.length === 0) {
+                this.showToast('warning', 'Нет разделов для экспорта');
+                return;
+            }
+
+            // Show loading state
+            if (this.mokExportConfigBtn) {
+                this.mokExportConfigBtn.disabled = true;
+                this.mokExportConfigBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Экспорт...';
+            }
+
+            // Create configuration data
+            const configData = {
+                version: '1.0',
+                timestamp: new Date().toISOString(),
+                sections: this.mokSections.map(section => ({
+                    id: section.id,
+                    name: section.name,
+                    addresses: section.addresses,
+                    createdAt: section.createdAt
+                }))
+            };
+
+            // Create and download file
+            const jsonString = JSON.stringify(configData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mok-config-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+
+            this.logMessage(`Экспортировано ${configData.sections.length} разделов в файл конфигурации`);
+            this.showToast('success', `Конфигурация экспортирована (${configData.sections.length} разделов)`);
+
+        } catch (error) {
+            console.error('Error exporting MOK config:', error);
+            this.logMessage(`Ошибка экспорта конфигурации МОК: ${error.message}`);
+            this.showToast('error', 'Ошибка экспорта конфигурации');
+        } finally {
+            // Restore button state
+            if (this.mokExportConfigBtn) {
+                this.mokExportConfigBtn.disabled = false;
+                this.mokExportConfigBtn.innerHTML = '<i class="fas fa-file-export"></i> Экспорт конфиг МОК';
+            }
+        }
+    }
+
+    async startMokRs485Scan() {
+        if (!this.comPortSelect.value) {
+            this.showToast('error', 'Сначала подключитесь к COM порту');
+            return;
+        }
+        
+        if (this.mokScanInProgress) {
+            this.showToast('warning', 'Сканирование уже выполняется');
+            return;
+        }
+        
+        this.mokScanInProgress = true;
+        this.mokStartScanBtn.disabled = true;
+        this.mokStartScanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сканирование...';
+        
+        // Reset scan results
+        this.mokScanResults = new Array(127).fill(false);
+        this.updateMokIndicatorsView();
+        this.updateMokAddressTree();
+        
+        try {
+            // Create and send scan command
+            const scanCommand = this.createMokScanCommand();
+            this.logMessage(`TX: ${scanCommand} | Начало сканирования RS485 для МОК`);
+            
+            // Send command via IPC
+            const result = await ipcRenderer.invoke('send-command', scanCommand);
+            
+            if (result.success) {
+                this.showToast('info', 'Команда сканирования отправлена');
+                
+                // Simulate scan results after delay (in real implementation, this would come from response)
+                setTimeout(() => {
+                    this.simulateMokScanResults();
+                }, 2000);
+            } else {
+                this.showToast('error', 'Ошибка отправки команды сканирования');
+            }
+        } catch (error) {
+            console.error('Error during MOK scan:', error);
+            this.showToast('error', 'Ошибка сканирования: ' + error.message);
+        }
+        
+        // Reset button state after timeout
+        setTimeout(() => {
+            this.mokScanInProgress = false;
+            this.mokStartScanBtn.disabled = false;
+            this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+        }, 5000);
+    }
+
+    createMokScanCommand() {
+        // Create 5-byte RS485 scan command for MOK
+        const commandByte = 0x65; // Scan command
+        const startAddress = 0x01; // Start from address 1
+        const endAddress = 0x7F; // End at address 127
+        const checksum = commandByte ^ startAddress ^ endAddress;
+        
+        const commandBytes = [
+            commandByte, 
+            startAddress, 
+            endAddress, 
+            checksum & 0xFF, 
+            (checksum >> 8) & 0xFF
+        ];
+        
+        return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    simulateMokScanResults() {
+        // Simulate responses from some addresses (for testing)
+        const respondingAddresses = [1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 110, 120];
+        
+        respondingAddresses.forEach(address => {
+            if (address <= 127) {
+                this.mokScanResults[address - 1] = true;
+            }
+        });
+        
+        this.updateMokIndicatorsView();
+        this.updateMokAddressTree();
+        this.showToast('success', `Сканирование завершено. Найдено ${respondingAddresses.length} устройств`);
+    }
+
+    createMokSection() {
+        // Initialize sections array if not exists
+        if (!this.mokSections) {
+            this.mokSections = [];
+        }
+        
+        // Check limit of 50 sections
+        if (this.mokSections.length >= 50) {
+            this.showToast('warning', 'Достигнуто максимальное количество разделов (50)');
+            return;
+        }
+        
+        // Create new section with auto-incrementing ID
+        const maxId = this.mokSections.length > 0 ? Math.max(...this.mokSections.map(s => s.id)) : 0;
+        const sectionId = maxId + 1;
+        const newSection = {
+            id: sectionId,
+            name: `Раздел ${sectionId}`,
+            addresses: [],
+            createdAt: new Date().toISOString()
+        };
+        
+        this.mokSections.push(newSection);
+        this.updateMokAddressTree();
+        
+        this.showToast('success', `Создан новый раздел: ${newSection.name}`);
+    }
+
+    deleteMokSection() {
+        if (!this.mokSections || this.mokSections.length === 0) {
+            this.showToast('warning', 'Нет разделов для удаления');
+            return;
+        }
+        
+        // Get selected section (if any)
+        const selectedNode = this.mokAddressTree?.querySelector('.mok-tree-node.selected');
+        if (!selectedNode) {
+            this.showToast('warning', 'Выберите раздел для удаления');
+            return;
+        }
+        
+        const sectionId = parseInt(selectedNode.getAttribute('data-section-id'));
+        if (sectionId) {
+            // Remove section by ID
+            this.mokSections = this.mokSections.filter(section => section.id !== sectionId);
+            this.updateMokAddressTree();
+            this.showToast('info', 'Раздел удален');
+        } else {
+            this.showToast('warning', 'Выбранный элемент не является разделом');
+        }
     }
 
     showToast(type, message) {

@@ -16,110 +16,6 @@
     box-shadow: 0 12px 30px rgba(233, 30, 99, 0.2);
 }
 
-/* MOK valve control buttons */
-#mok .valve-controls {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-#mok .valve-controls .btn {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-#mok .valve-controls .btn-success {
-    background: linear-gradient(135deg, #4caf50, #388e3c);
-    border: none;
-    color: white;
-}
-
-#mok .valve-controls .btn-success:hover {
-    background: linear-gradient(135deg, #388e3c, #2e7d32);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
-}
-
-#mok .valve-controls .btn-secondary {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-    border: none;
-    color: white;
-}
-
-#mok .valve-controls .btn-secondary:hover {
-    background: linear-gradient(135deg, #5a6268, #495057);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
-}
-
-/* MOK automation controls */
-#mok .mok-controls {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-}
-
-#mok .mok-controls .btn {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-#mok .mok-controls .btn-primary {
-    background: linear-gradient(135deg, #e91e63, #c2185b);
-    border: none;
-    color: white;
-}
-
-#mok .mok-controls .btn-primary:hover {
-    background: linear-gradient(135deg, #c2185b, #ad1457);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.3);
-}
-
-#mok .mok-controls .btn-warning {
-    background: linear-gradient(135deg, #ff9800, #f57c00);
-    border: none;
-    color: white;
-}
-
-#mok .mok-controls .btn-warning:hover {
-    background: linear-gradient(135deg, #f57c00, #ef6c00);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
-}
-
-/* MOK valve status indicators */
-#mok .valve-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-top: 0.5rem;
-}
-
-#mok .valve-status.open {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-#mok .valve-status.closed {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-#mok .valve-status.error {
-    background-color: #fff3cd;
-    color: #856404;
-}
 
 /* MOK input focus states */
 #mok .form-input:focus,
@@ -133,10 +29,6 @@
     animation: slideInFromBottom 0.5s ease-out;
 }
 
-#mok .valve-controls .btn,
-#mok .mok-controls .btn {
-    animation: scaleIn 0.3s ease-out;
-}
 
 #mok .param-card:nth-child(2) {
     animation-delay: 0.1s;
@@ -197,13 +89,386 @@
         gap: 1rem;
     }
     
-    #mok .valve-controls,
-    #mok .mok-controls {
+}
+
+/* MOK Full Page Container */
+.mok-full-page {
+    width: 100%;
+    height: 100%;
+}
+
+/* MOK RS485 Scan and System Tree Styles */
+.mok-scan-container {
+    display: flex;
+    gap: 2rem;
+    align-items: stretch; /* Изменено с flex-start для выравнивания высоты */
+    min-height: 600px; /* Увеличена для соответствия индикаторам */
+    margin: 2rem 0;
+    width: 100%;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid #e91e63;
+}
+
+.mok-scan-block {
+    flex: 1;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-height: 600px; /* Увеличена для соответствия индикаторам */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    height: 100%; /* Добавлено для растягивания */
+}
+
+.mok-scan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e91e63;
+    padding-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.mok-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mok-header-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mok-scan-header h4 {
+    margin: 0;
+    color: #e91e63;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.mok-scan-info {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.btn-small i {
+    font-size: 0.75rem;
+}
+
+.mok-scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+    min-height: 0;
+}
+
+.mok-scrollable-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mok-scrollable-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.mok-scrollable-content::-webkit-scrollbar-thumb {
+    background: #e91e63;
+    border-radius: 4px;
+}
+
+.mok-scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: #c2185b;
+}
+
+.mok-block-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mok-address-indicators {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    min-height: 600px;
+    align-content: start;
+    /* Calculate height for 127 indicators (16 rows * ~60px per row) */
+    height: auto;
+    max-height: none;
+}
+
+.mok-address-indicator {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.mok-address-indicator.inactive {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    border-color: #495057;
+}
+
+.mok-address-indicator.active {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #dc3545;
+    border-color: #1e7e34;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.mok-address-indicator.selected {
+    border-color: #e91e63;
+    border-width: 3px;
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+}
+
+.mok-address-indicator:hover {
+    transform: scale(1.05);
+}
+
+.mok-arrow-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    align-self: center; /* Центрируем по вертикали */
+    position: relative;
+    top: 25%; /* Опускаем кнопки на 25% от центра (что дает примерно 70% от верха) */
+}
+
+.btn-arrow {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #e91e63;
+    background: white;
+    color: #e91e63;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-arrow:hover:not(:disabled) {
+    background: #e91e63;
+    color: white;
+    transform: scale(1.1);
+}
+
+.btn-arrow:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mok-address-tree {
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    min-height: 600px;
+    height: 100%; /* Растягивание на всю высоту родителя */
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+}
+
+.mok-tree-header {
+    font-weight: 600;
+    color: #e91e63;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.mok-tree-node {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.mok-tree-node:hover {
+    background-color: #f8f9fa;
+    border-left-color: #e91e63;
+}
+
+.mok-tree-node.selected {
+    background-color: #e3f2fd;
+    border-left-color: #2196f3;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.mok-tree-node i {
+    color: #28a745;
+    width: 16px;
+}
+
+/* Section-specific tree node styles */
+.mok-tree-node.section {
+    background-color: #f8f9fa;
+    border-left-color: #ffc107;
+    font-weight: 600;
+}
+
+.mok-tree-node.section i {
+    color: #ffc107;
+}
+
+.mok-tree-node.section.selected {
+    background-color: #fff3cd;
+    border-left-color: #ff9800;
+    color: #856404;
+}
+
+.mok-tree-node.device i {
+    color: #28a745;
+}
+
+.mok-tree-node.device.selected {
+    background-color: #e3f2fd;
+    border-left-color: #2196f3;
+    color: #1976d2;
+}
+
+.section-address-count {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: normal;
+    margin-left: auto;
+}
+
+/* Styles for devices within sections */
+.mok-tree-node.section-device {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+    background-color: #f1f3f4;
+    border-left-color: #28a745;
+}
+
+.mok-tree-node.section-device i {
+    color: #28a745;
+    font-size: 0.85rem;
+}
+
+.mok-tree-node.section-device:hover {
+    background-color: #e8f5e8;
+    border-left-color: #20c997;
+}
+
+.mok-tree-separator {
+    height: 1px;
+    background-color: #dee2e6;
+    margin: 1rem 0;
+}
+
+.mok-tree-header {
+    font-weight: 600;
+    color: #e91e63;
+    margin-bottom: 0.75rem;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mok-tree-header:first-child {
+    margin-top: 0;
+}
+
+/* Responsive adjustments for MOK scan blocks */
+@media (max-width: 1200px) {
+    .mok-scan-container {
         flex-direction: column;
+        gap: 1.5rem;
     }
     
-    #mok .valve-controls .btn,
-    #mok .mok-controls .btn {
-        width: 100%;
+    .mok-arrow-controls {
+        flex-direction: row;
+        justify-content: center;
+        padding: 1rem 0;
+        position: static; /* Сброс позиционирования для мобильных */
+        top: auto; /* Сброс top для мобильных */
+    }
+}
+
+@media (max-width: 768px) {
+    .mok-scan-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .mok-scan-block {
+        padding: 1rem;
+        min-height: 400px;
+    }
+    
+    .mok-arrow-controls {
+        position: static; /* Сброс позиционирования для мобильных */
+        top: auto; /* Сброс top для мобильных */
+    }
+    
+    .mok-address-indicators {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .mok-address-indicator {
+        width: 40px;
+        height: 40px;
+        font-size: 0.8rem;
     }
 }
