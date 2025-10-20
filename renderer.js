@@ -350,6 +350,7 @@ class RS485Adjuster {
         this.mokCreateSectionBtn = null;
         this.mokDeleteSectionBtn = null;
         this.mokWriteConfigBtn = null;
+        this.mokScanBlock = null;
         
         // Initialize MOK scan elements
         this.mokStartScanBtn = document.getElementById('mok-start-scan');
@@ -364,6 +365,10 @@ class RS485Adjuster {
         this.mokDeleteSectionBtn = document.getElementById('mok-delete-section');
         this.mokWriteConfigBtn = document.getElementById('mok-write-config');
         
+        // Find the left scan block (first mok-scan-block)
+        const scanBlocks = document.querySelectorAll('.mok-scan-block');
+        this.mokScanBlock = scanBlocks.length > 0 ? scanBlocks[0] : null;
+        
         // Initialize MOK scan state if not already done
         if (!this.mokScanResults) {
             this.mokScanResults = new Array(127).fill(false);
@@ -376,6 +381,12 @@ class RS485Adjuster {
         }
         if (this.mokIndicatorsPerPage === undefined) {
             this.mokIndicatorsPerPage = 64;
+        }
+        if (this.waitingForMokScanResponse === undefined) {
+            this.waitingForMokScanResponse = false;
+        }
+        if (this.mokOutsideClickBound === undefined) {
+            this.mokOutsideClickBound = false;
         }
         
         // Initialize section management state
@@ -2010,6 +2021,41 @@ class RS485Adjuster {
                 this.showToast('error', 'PM: Ошибка обработки ответа записи: ' + error.message);
                 this.waitingForPmWriteResponse = false;
             }
+        }
+        // Check if we're waiting for MOK scan response
+        else if (this.waitingForMokScanResponse) {
+            try {
+                const scanResults = this.parseMokScanResponse(data);
+                if (scanResults && scanResults.length > 0) {
+                    // Update scan results
+                    scanResults.forEach(address => {
+                        if (address >= 1 && address <= 127) {
+                            this.mokScanResults[address - 1] = true;
+                        }
+                    });
+                    
+                    this.updateMokIndicatorsView();
+                    this.updateMokAddressTree();
+                    
+                    const foundCount = scanResults.length;
+                    this.logMessage(`МОК: Найдено ${foundCount} устройств: ${scanResults.join(', ')}`);
+                    this.showToast('success', `МОК: Найдено ${foundCount} устройств`);
+                }
+                
+                // Reset waiting flag and button state
+                this.waitingForMokScanResponse = false;
+                this.mokScanInProgress = false;
+                this.mokStartScanBtn.disabled = false;
+                this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+                
+            } catch (error) {
+                console.error('Error parsing MOK scan response:', error);
+                this.logMessage(`МОК: Ошибка обработки ответа: ${error.message}`);
+                this.waitingForMokScanResponse = false;
+                this.mokScanInProgress = false;
+                this.mokStartScanBtn.disabled = false;
+                this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+            }
         } else {
             // Regular response handling
             if (data.includes('OK')) {
@@ -2137,6 +2183,12 @@ class RS485Adjuster {
             this.mokWriteConfigBtn.addEventListener('click', () => this.writeMokConfig());
             this.mokWriteConfigBtn._eventBound = true;
         }
+
+        // Click outside scan block to clear selection
+        if (!this.mokOutsideClickBound) {
+            document.addEventListener('click', (e) => this.handleMokOutsideClick(e));
+            this.mokOutsideClickBound = true;
+        }
     }
 
     createMokAddressIndicators() {
@@ -2151,12 +2203,26 @@ class RS485Adjuster {
             indicator.className = 'mok-address-indicator inactive';
             indicator.textContent = i;
             indicator.setAttribute('data-address', i);
-            indicator.addEventListener('click', () => this.selectMokAddress(i));
+            indicator.draggable = true;
+            
+            // Add click event
+            indicator.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectMokAddress(i);
+            });
+            
+            // Add drag events
+            indicator.addEventListener('dragstart', (e) => this.handleDragStart(e, i));
+            indicator.addEventListener('dragend', (e) => this.handleDragEnd(e));
+            
             this.mokAddressIndicators.appendChild(indicator);
         }
         
         // Update view
         this.updateMokIndicatorsView();
+        
+        // Setup drop zones for sections
+        this.setupSectionDropZones();
     }
 
     updateMokIndicatorsView() {
@@ -2166,15 +2232,30 @@ class RS485Adjuster {
         
         indicators.forEach((indicator, index) => {
             const address = parseInt(indicator.getAttribute('data-address'));
+            const isSelected = indicator.classList.contains('selected');
+            const isDragStatus = indicator.classList.contains('dragging');
             
             // Show all indicators (vertical scrolling handled by CSS)
             indicator.style.display = 'flex';
             
+            // Remove status classes first
+            indicator.classList.remove('active', 'inactive');
+            
             // Update status based on scan results
             if (this.mokScanResults && this.mokScanResults[address - 1]) {
-                indicator.className = 'mok-address-indicator active';
+                indicator.classList.add('active');
             } else {
-                indicator.className = 'mok-address-indicator inactive';
+                indicator.classList.add('inactive');
+            }
+            
+            // Restore selection if it was selected or matches current selection
+            if (isSelected || address === this.mokSelectedAddress) {
+                indicator.classList.add('selected');
+            }
+            
+            // Restore dragging state if needed
+            if (isDragStatus) {
+                indicator.classList.add('dragging');
             }
         });
         
@@ -2206,6 +2287,9 @@ class RS485Adjuster {
         } else if (direction === 'right') {
             // Add address to section
             this.moveAddressToSection(this.mokSelectedAddress, this.mokSelectedSection);
+            
+            // Clear selection after moving to section
+            this.clearMokAddressSelection();
         }
     }
 
@@ -2222,6 +2306,30 @@ class RS485Adjuster {
             this.updateMokAddressTree(address);
             this.scrollToMokAddress(address);
             this.updateArrowButtonsState(); // Update arrow buttons state
+        }
+    }
+
+    clearMokAddressSelection() {
+        // Remove selection from all indicators
+        const indicators = this.mokAddressIndicators.querySelectorAll('.mok-address-indicator');
+        indicators.forEach(indicator => indicator.classList.remove('selected'));
+        
+        // Clear selected address
+        this.mokSelectedAddress = null;
+        
+        // Update arrow buttons state
+        this.updateArrowButtonsState();
+    }
+
+    handleMokOutsideClick(e) {
+        // Only handle if we're on MOK tab and have a scan block
+        if (this.currentTab !== 'mok' || !this.mokScanBlock || !this.mokSelectedAddress) {
+            return;
+        }
+
+        // Check if the click is outside the scan block
+        if (!this.mokScanBlock.contains(e.target)) {
+            this.clearMokAddressSelection();
         }
     }
 
@@ -2252,22 +2360,64 @@ class RS485Adjuster {
             treeHTML += '<div class="mok-tree-header">Разделы системы:</div>';
             this.mokSections.forEach(section => {
                 const isSectionSelected = this.mokSelectedSection === section.id ? 'selected' : '';
+                const deviceCount = section.addresses.length;
+                const activeDevices = section.addresses.filter(addr => {
+                    const addressNum = typeof addr === 'number' ? addr : addr.address;
+                    return this.mokScanResults && this.mokScanResults[addressNum - 1];
+                }).length;
+                
                 treeHTML += `
                     <div class="mok-tree-node section ${isSectionSelected}" data-section-id="${section.id}">
-                        <i class="fas fa-folder"></i>
-                        ${section.name}
-                        <span class="section-address-count">(${section.addresses.length})</span>
+                        <div class="section-header">
+                            <div class="section-info">
+                                <i class="fas fa-folder"></i>
+                                <span class="section-name" data-section-id="${section.id}">${section.name}</span>
+                                <button class="btn-edit-section" data-section-id="${section.id}" title="Редактировать название">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                            <div class="section-status">
+                                <span class="section-address-count">${deviceCount} устройств</span>
+                                <div class="device-status-indicator">
+                                    <div class="status-dot active" title="Активные: ${activeDevices}"></div>
+                                    <div class="status-dot inactive" title="Неактивные: ${deviceCount - activeDevices}"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
                 // Add addresses within the section if any
                 if (section.addresses && section.addresses.length > 0) {
-                    section.addresses.forEach(address => {
+                    section.addresses.forEach(addressObj => {
+                        // Handle both old format (number) and new format (object)
+                        const address = typeof addressObj === 'number' ? addressObj : addressObj.address;
+                        const deviceType = typeof addressObj === 'object' && addressObj.type ? addressObj.type : 'Охранный';
+                        
                         const isAddressSelected = selectedAddress === address ? 'selected' : '';
+                        const isDeviceResponding = this.mokScanResults && this.mokScanResults[address - 1];
+                        const deviceStatus = isDeviceResponding ? 'active' : 'inactive';
+                        const statusIcon = isDeviceResponding ? 'fa-microchip' : 'fa-microchip';
+                        
                         treeHTML += `
-                            <div class="mok-tree-node device section-device ${isAddressSelected}" data-address="${address}" style="margin-left: 20px;">
-                                <i class="fas fa-microchip"></i>
-                                Устройство ${address}
+                            <div class="mok-tree-node device section-device ${isAddressSelected} ${deviceStatus}" data-address="${address}" style="margin-left: 20px;">
+                                <div class="device-info">
+                                    <div class="device-left">
+                                        <i class="fas ${statusIcon}"></i>
+                                        <span class="device-name">Устройство ${address}</span>
+                                    </div>
+                                    <div class="device-right">
+                                        <select class="device-type-select" data-address="${address}" data-section-id="${section.id}">
+                                            <option value="Охранный" ${deviceType === 'Охранный' ? 'selected' : ''}>Охранный</option>
+                                            <option value="Пожарный" ${deviceType === 'Пожарный' ? 'selected' : ''}>Пожарный</option>
+                                            <option value="Технологический" ${deviceType === 'Технологический' ? 'selected' : ''}>Технологический</option>
+                                        </select>
+                                        <div class="device-status">
+                                            <span class="status-text ${deviceStatus}">${isDeviceResponding ? 'Активно' : 'Не отвечает'}</span>
+                                            <div class="status-dot ${deviceStatus}"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     });
@@ -2279,7 +2429,10 @@ class RS485Adjuster {
         // Add found devices that are not in any section
         const addressesInSections = new Set();
         this.mokSections.forEach(section => {
-            section.addresses.forEach(addr => addressesInSections.add(addr));
+            section.addresses.forEach(addr => {
+                const addressNum = typeof addr === 'number' ? addr : addr.address;
+                addressesInSections.add(addressNum);
+            });
         });
         
         const unassignedAddresses = foundAddresses.filter(addr => !addressesInSections.has(addr));
@@ -2288,10 +2441,22 @@ class RS485Adjuster {
             treeHTML += '<div class="mok-tree-header">Свободные устройства:</div>';
             unassignedAddresses.forEach(address => {
                 const isSelected = selectedAddress === address ? 'selected' : '';
+                const isDeviceResponding = this.mokScanResults && this.mokScanResults[address - 1];
+                const deviceStatus = isDeviceResponding ? 'active' : 'inactive';
+                const statusIcon = isDeviceResponding ? 'fa-microchip' : 'fa-microchip';
+                
                 treeHTML += `
-                    <div class="mok-tree-node device ${isSelected}" data-address="${address}">
-                        <i class="fas fa-microchip"></i>
-                        Устройство ${address}
+                    <div class="mok-tree-node device ${isSelected} ${deviceStatus}" data-address="${address}">
+                        <div class="device-info">
+                            <div class="device-left">
+                                <i class="fas ${statusIcon}"></i>
+                                <span class="device-name">Устройство ${address}</span>
+                            </div>
+                            <div class="device-status">
+                                <span class="status-text ${deviceStatus}">${isDeviceResponding ? 'Активно' : 'Не отвечает'}</span>
+                                <div class="status-dot ${deviceStatus}"></div>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -2311,6 +2476,21 @@ class RS485Adjuster {
             node.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
+                // Check if edit button was clicked
+                const editBtn = e.target.closest('.btn-edit-section');
+                if (editBtn) {
+                    e.stopPropagation();
+                    const sectionId = parseInt(editBtn.getAttribute('data-section-id'));
+                    this.editMokSectionName(sectionId);
+                    return;
+                }
+                
+                // Check if device type selector was clicked
+                const deviceTypeSelect = e.target.closest('.device-type-select');
+                if (deviceTypeSelect) {
+                    return; // Don't handle node selection when clicking on select
+                }
+                
                 // Remove previous selection
                 treeNodes.forEach(n => n.classList.remove('selected'));
                 
@@ -2329,6 +2509,31 @@ class RS485Adjuster {
                 }
             });
         });
+
+        // Add click handlers to edit buttons specifically
+        const editButtons = this.mokAddressTree.querySelectorAll('.btn-edit-section');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const sectionId = parseInt(btn.getAttribute('data-section-id'));
+                this.editMokSectionName(sectionId);
+            });
+        });
+
+        // Add change handlers to device type selectors
+        const deviceTypeSelectors = this.mokAddressTree.querySelectorAll('.device-type-select');
+        deviceTypeSelectors.forEach(selector => {
+            selector.addEventListener('change', (e) => {
+                e.stopPropagation();
+                const address = parseInt(e.target.getAttribute('data-address'));
+                const sectionId = parseInt(e.target.getAttribute('data-section-id'));
+                const newType = e.target.value;
+                this.updateDeviceType(address, sectionId, newType);
+            });
+        });
+
+        // Setup drop zones for sections
+        this.setupSectionDropZones();
     }
 
     scrollToMokAddress(address) {
@@ -2353,19 +2558,45 @@ class RS485Adjuster {
     moveAddressToSection(address, sectionId) {
         // Remove address from all sections first
         this.mokSections.forEach(section => {
-            const index = section.addresses.indexOf(address);
-            if (index !== -1) {
-                section.addresses.splice(index, 1);
-            }
+            // Handle both old format (numbers) and new format (objects)
+            section.addresses = section.addresses.filter(addr => {
+                if (typeof addr === 'number') {
+                    return addr !== address;
+                } else if (typeof addr === 'object' && addr.address) {
+                    return addr.address !== address;
+                }
+                return true;
+            });
         });
         
         // Add address to the specified section
         if (sectionId !== null) {
             const section = this.mokSections.find(s => s.id === sectionId);
-            if (section && !section.addresses.includes(address)) {
-                section.addresses.push(address);
-                section.addresses.sort((a, b) => a - b); // Keep addresses sorted
-                this.showToast('success', `Адрес ${address} добавлен в ${section.name}`);
+            if (section) {
+                // Check if address already exists in this section
+                const addressExists = section.addresses.some(addr => {
+                    if (typeof addr === 'number') {
+                        return addr === address;
+                    } else if (typeof addr === 'object' && addr.address) {
+                        return addr.address === address;
+                    }
+                    return false;
+                });
+                
+                if (!addressExists) {
+                    // Add new address object with default type
+                    section.addresses.push({
+                        address: address,
+                        type: 'Охранный' // Default type
+                    });
+                    // Sort by address number
+                    section.addresses.sort((a, b) => {
+                        const addrA = typeof a === 'number' ? a : a.address;
+                        const addrB = typeof b === 'number' ? b : b.address;
+                        return addrA - addrB;
+                    });
+                    this.showToast('success', `Адрес ${address} добавлен в ${section.name}`);
+                }
             }
         } else {
             this.showToast('info', `Адрес ${address} удален из всех разделов`);
@@ -2373,6 +2604,40 @@ class RS485Adjuster {
         
         // Update the tree display
         this.updateMokAddressTree(this.mokSelectedAddress);
+    }
+
+    updateDeviceType(address, sectionId, newType) {
+        const section = this.mokSections.find(s => s.id === sectionId);
+        if (!section) {
+            this.showToast('error', 'Раздел не найден');
+            return;
+        }
+
+        // Find the address object in the section
+        const addressIndex = section.addresses.findIndex(addr => {
+            if (typeof addr === 'number') {
+                return addr === address;
+            } else if (typeof addr === 'object' && addr.address) {
+                return addr.address === address;
+            }
+            return false;
+        });
+
+        if (addressIndex !== -1) {
+            // Update the type
+            if (typeof section.addresses[addressIndex] === 'object' && section.addresses[addressIndex].address) {
+                section.addresses[addressIndex].type = newType;
+            } else {
+                // Convert from old format to new format
+                section.addresses[addressIndex] = {
+                    address: section.addresses[addressIndex],
+                    type: newType
+                };
+            }
+            this.showToast('success', `Тип устройства ${address} изменен на ${newType}`);
+        } else {
+            this.showToast('error', 'Адрес не найден в разделе');
+        }
     }
 
     updateArrowButtonsState() {
@@ -2437,7 +2702,7 @@ class RS485Adjuster {
             // Restore button state
             if (this.mokWriteConfigBtn) {
                 this.mokWriteConfigBtn.disabled = false;
-                this.mokWriteConfigBtn.innerHTML = '<i class="fas fa-download"></i> Записать Конфиг в МОК';
+                this.mokWriteConfigBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить дерево';
             }
         }
     }
@@ -2489,17 +2754,90 @@ class RS485Adjuster {
             const configData = await filePromise;
             document.body.removeChild(fileInput);
 
-            // Validate imported data
+            // Enhanced validation of imported data
             if (!configData.sections || !Array.isArray(configData.sections)) {
-                throw new Error('Неверный формат файла конфигурации');
+                throw new Error('Неверный формат файла конфигурации: отсутствует массив sections');
             }
 
-            // Import sections
-            this.mokSections = configData.sections.map(section => ({
-                id: section.id || Math.max(...(this.mokSections || []).map(s => s.id || 0), 0) + 1,
-                name: section.name || 'Импортированный раздел',
-                addresses: section.addresses || [],
-                createdAt: new Date().toISOString()
+            if (configData.sections.length > 50) {
+                throw new Error('Слишком много разделов. Максимум 50 разделов');
+            }
+
+            // Validate each section before import
+            const validSections = [];
+            for (const section of configData.sections) {
+                if (!section || typeof section !== 'object') {
+                    console.warn('Пропущен недопустимый раздел');
+                    continue;
+                }
+
+                // Validate section name
+                if (!section.name || typeof section.name !== 'string' || section.name.trim().length === 0) {
+                    section.name = `Импортированный раздел ${validSections.length + 1}`;
+                }
+                if (section.name.length > 50) {
+                    section.name = section.name.substring(0, 50);
+                }
+
+                // Validate addresses array
+                if (!Array.isArray(section.addresses)) {
+                    section.addresses = [];
+                }
+
+                // Validate and normalize addresses (handle both old and new formats)
+                const validAddresses = [];
+                const seenAddresses = new Set();
+                
+                section.addresses.forEach(addr => {
+                    let addressNum, deviceType = 'Охранный';
+                    
+                    if (typeof addr === 'number') {
+                        addressNum = addr;
+                    } else if (typeof addr === 'object' && addr.address) {
+                        addressNum = addr.address;
+                        deviceType = addr.type || 'Охранный';
+                    } else {
+                        addressNum = parseInt(addr);
+                    }
+                    
+                    if (!isNaN(addressNum) && addressNum >= 1 && addressNum <= 127 && !seenAddresses.has(addressNum)) {
+                        validAddresses.push({
+                            address: addressNum,
+                            type: deviceType
+                        });
+                        seenAddresses.add(addressNum);
+                    }
+                });
+
+                // Sort addresses by address number
+                section.addresses = validAddresses.sort((a, b) => a.address - b.address);
+
+                // Check for duplicate section names
+                const isDuplicateName = validSections.some(s => s.name === section.name);
+                if (isDuplicateName) {
+                    section.name += ` (${validSections.length + 1})`;
+                }
+
+                validSections.push({
+                    id: section.id && typeof section.id === 'number' ? section.id : null,
+                    name: section.name.trim(),
+                    addresses: section.addresses,
+                    createdAt: section.createdAt || new Date().toISOString()
+                });
+            }
+
+            // Generate IDs for sections without them
+            let nextId = 1;
+            if (this.mokSections && this.mokSections.length > 0) {
+                nextId = Math.max(...this.mokSections.map(s => s.id || 0)) + 1;
+            }
+
+            // Import sections with proper ID generation
+            this.mokSections = validSections.map(section => ({
+                id: section.id || nextId++,
+                name: section.name,
+                addresses: section.addresses,
+                createdAt: section.createdAt
             }));
 
             // Update the display
@@ -2603,30 +2941,41 @@ class RS485Adjuster {
             const scanCommand = this.createMokScanCommand();
             this.logMessage(`TX: ${scanCommand} | Начало сканирования RS485 для МОК`);
             
+            // Set flag to wait for scan response
+            this.waitingForMokScanResponse = true;
+            
             // Send command via IPC
             const result = await ipcRenderer.invoke('send-command', scanCommand);
             
             if (result.success) {
                 this.showToast('info', 'Команда сканирования отправлена');
                 
-                // Simulate scan results after delay (in real implementation, this would come from response)
+                // Set timeout for scan operation (30 seconds for 127 addresses)
                 setTimeout(() => {
-                    this.simulateMokScanResults();
-                }, 2000);
+                    if (this.waitingForMokScanResponse) {
+                        this.waitingForMokScanResponse = false;
+                        this.mokScanInProgress = false;
+                        this.mokStartScanBtn.disabled = false;
+                        this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+                        this.showToast('warning', 'Таймаут сканирования. Возможно, некоторые устройства не отвечают.');
+                        this.logMessage('МОК: Таймаут сканирования');
+                    }
+                }, 30000);
             } else {
                 this.showToast('error', 'Ошибка отправки команды сканирования');
+                this.waitingForMokScanResponse = false;
+                this.mokScanInProgress = false;
+                this.mokStartScanBtn.disabled = false;
+                this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
             }
         } catch (error) {
             console.error('Error during MOK scan:', error);
             this.showToast('error', 'Ошибка сканирования: ' + error.message);
-        }
-        
-        // Reset button state after timeout
-        setTimeout(() => {
+            this.waitingForMokScanResponse = false;
             this.mokScanInProgress = false;
             this.mokStartScanBtn.disabled = false;
             this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
-        }, 5000);
+        }
     }
 
     createMokScanCommand() {
@@ -2645,6 +2994,50 @@ class RS485Adjuster {
         ];
         
         return commandBytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    parseMokScanResponse(data) {
+        try {
+            // Parse MOK scan response format
+            // Expected format: МОК_SCAN:addresses (e.g., "МОК_SCAN:1,2,5,10,15")
+            if (data.startsWith('МОК_SCAN:')) {
+                const addressesStr = data.substring(9); // Remove "МОК_SCAN:" prefix
+                const addresses = addressesStr.split(',')
+                    .map(addr => parseInt(addr.trim()))
+                    .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 127);
+                return addresses;
+            }
+            
+            // Alternative format: SCAN_MOK:addresses
+            if (data.startsWith('SCAN_MOK:')) {
+                const addressesStr = data.substring(9);
+                const addresses = addressesStr.split(',')
+                    .map(addr => parseInt(addr.trim()))
+                    .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 127);
+                return addresses;
+            }
+            
+            // Fallback: try to parse as simple comma-separated addresses
+            if (data.includes(',')) {
+                const addresses = data.split(',')
+                    .map(addr => parseInt(addr.trim()))
+                    .filter(addr => !isNaN(addr) && addr >= 1 && addr <= 127);
+                if (addresses.length > 0) {
+                    return addresses;
+                }
+            }
+            
+            // Single address format
+            const singleAddr = parseInt(data.trim());
+            if (!isNaN(singleAddr) && singleAddr >= 1 && singleAddr <= 127) {
+                return [singleAddr];
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('Error parsing MOK scan response:', error);
+            return [];
+        }
     }
 
     simulateMokScanResults() {
@@ -2712,6 +3105,207 @@ class RS485Adjuster {
         } else {
             this.showToast('warning', 'Выбранный элемент не является разделом');
         }
+    }
+
+    editMokSectionName(sectionId) {
+        const section = this.mokSections.find(s => s.id === sectionId);
+        if (!section) {
+            this.showToast('error', 'Раздел не найден');
+            return;
+        }
+
+        // Create modal dialog for editing section name
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        const modalContent = `
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>Редактировать название раздела</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="section-name-input">Название раздела:</label>
+                        <input type="text" id="section-name-input" class="form-input" value="${section.name}" maxlength="50">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancel-edit-section" class="btn btn-secondary">Отмена</button>
+                    <button id="save-edit-section" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        `;
+        
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+
+        // Focus on input
+        const input = modal.querySelector('#section-name-input');
+        input.focus();
+        input.select();
+
+        // Handle events
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.querySelector('#cancel-edit-section').addEventListener('click', closeModal);
+        
+        modal.querySelector('#save-edit-section').addEventListener('click', () => {
+            const newName = input.value.trim();
+            if (!newName) {
+                this.showToast('warning', 'Название раздела не может быть пустым');
+                return;
+            }
+            
+            if (newName.length > 50) {
+                this.showToast('warning', 'Название раздела не может быть длиннее 50 символов');
+                return;
+            }
+
+            // Check for duplicate names
+            const duplicateSection = this.mokSections.find(s => s.id !== sectionId && s.name === newName);
+            if (duplicateSection) {
+                this.showToast('warning', 'Раздел с таким названием уже существует');
+                return;
+            }
+
+            // Update section name
+            section.name = newName;
+            this.updateMokAddressTree(this.mokSelectedAddress);
+            this.showToast('success', `Название раздела изменено на "${newName}"`);
+            closeModal();
+        });
+
+        // Handle Enter key
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                modal.querySelector('#save-edit-section').click();
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    // Drag and Drop Functions
+    handleDragStart(e, address) {
+        this.draggedAddress = address;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', address.toString());
+        
+        // Add visual feedback
+        e.target.classList.add('dragging');
+        
+        // Highlight all drop zones
+        this.highlightDropZones(true);
+    }
+
+    handleDragEnd(e) {
+        // Remove visual feedback
+        e.target.classList.remove('dragging');
+        
+        // Remove drop zone highlighting
+        this.highlightDropZones(false);
+        
+        this.draggedAddress = null;
+    }
+
+    setupSectionDropZones() {
+        if (!this.mokAddressTree) return;
+
+        // Find all section nodes
+        const sectionNodes = this.mokAddressTree.querySelectorAll('.mok-tree-node.section');
+        
+        sectionNodes.forEach(sectionNode => {
+            // Add drop event listeners (bind to this to maintain context)
+            sectionNode.addEventListener('dragover', this.handleDragOver.bind(this));
+            sectionNode.addEventListener('drop', this.handleDrop.bind(this));
+            sectionNode.addEventListener('dragenter', this.handleDragEnter.bind(this));
+            sectionNode.addEventListener('dragleave', this.handleDragLeave.bind(this));
+        });
+
+        // Also make the entire tree a drop zone for removing addresses from sections
+        this.mokAddressTree.addEventListener('dragover', this.handleTreeDragOver.bind(this));
+        this.mokAddressTree.addEventListener('drop', this.handleTreeDrop.bind(this));
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    handleDragEnter(e) {
+        e.preventDefault();
+        const sectionNode = e.currentTarget.closest('.mok-tree-node.section');
+        if (sectionNode) {
+            sectionNode.classList.add('drag-over');
+        }
+    }
+
+    handleDragLeave(e) {
+        const sectionNode = e.currentTarget.closest('.mok-tree-node.section');
+        if (sectionNode && !sectionNode.contains(e.relatedTarget)) {
+            sectionNode.classList.remove('drag-over');
+        }
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        
+        const sectionNode = e.currentTarget.closest('.mok-tree-node.section');
+        if (!sectionNode) return;
+        
+        const sectionId = parseInt(sectionNode.getAttribute('data-section-id'));
+        const address = parseInt(e.dataTransfer.getData('text/plain'));
+        
+        if (!isNaN(sectionId) && !isNaN(address)) {
+            this.moveAddressToSection(address, sectionId);
+            this.updateMokAddressTree(this.mokSelectedAddress);
+        }
+        
+        sectionNode.classList.remove('drag-over');
+    }
+
+    handleTreeDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    handleTreeDrop(e) {
+        e.preventDefault();
+        
+        // Check if dropping on empty area (not on a section)
+        if (!e.target.closest('.mok-tree-node.section')) {
+            const address = parseInt(e.dataTransfer.getData('text/plain'));
+            if (!isNaN(address)) {
+                // Remove from all sections
+                this.moveAddressToSection(address, null);
+                this.updateMokAddressTree(this.mokSelectedAddress);
+            }
+        }
+    }
+
+    highlightDropZones(highlight) {
+        if (!this.mokAddressTree) return;
+        
+        const sectionNodes = this.mokAddressTree.querySelectorAll('.mok-tree-node.section');
+        sectionNodes.forEach(node => {
+            if (highlight) {
+                node.classList.add('drop-zone-active');
+            } else {
+                node.classList.remove('drop-zone-active', 'drag-over');
+            }
+        });
     }
 
     showToast(type, message) {

@@ -388,6 +388,182 @@
     margin-left: auto;
 }
 
+/* New enhanced section header styles */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.section-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.section-info .section-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+.section-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.device-status-indicator {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.active {
+    background-color: #28a745;
+}
+
+.status-dot.inactive {
+    background-color: #dc3545;
+}
+
+.btn-edit-section {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
+    opacity: 0;
+}
+
+.mok-tree-node.section:hover .btn-edit-section {
+    opacity: 1;
+}
+
+.btn-edit-section:hover {
+    color: #e91e63;
+    background-color: rgba(233, 30, 99, 0.1);
+}
+
+/* Device status styles */
+.device-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.device-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.device-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.device-name {
+    flex: 1;
+}
+
+.device-type-select {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 0.8rem;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.device-type-select:hover {
+    border-color: #e91e63;
+    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.1);
+}
+
+.device-type-select:focus {
+    outline: none;
+    border-color: #e91e63;
+    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.2);
+}
+
+.device-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-text.active {
+    color: #28a745;
+}
+
+.status-text.inactive {
+    color: #dc3545;
+}
+
+.mok-tree-node.device.active {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.mok-tree-node.device.inactive {
+    border-left-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.05);
+    opacity: 0.7;
+}
+
+/* Drag and Drop Styles */
+.mok-address-indicator {
+    cursor: grab;
+}
+
+.mok-address-indicator:active {
+    cursor: grabbing;
+}
+
+.mok-tree-node.section.drop-zone-active {
+    background-color: rgba(233, 30, 99, 0.15);
+    border-left-color: #e91e63;
+    border-left-width: 4px;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.mok-tree-node.section.drag-over {
+    background-color: rgba(233, 30, 99, 0.25);
+    border-left-color: #e91e63;
+    border-left-width: 5px;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+}
+
+.mok-address-indicator.dragging {
+    opacity: 0.5;
+    transform: scale(1.1);
+    z-index: 1000;
+}
+
 /* Styles for devices within sections */
 .mok-tree-node.section-device {
     font-size: 0.9rem;
