@@ -201,36 +201,41 @@
     border-top: 1px solid #dee2e6;
     display: flex;
     justify-content: center;
+    gap: 1rem;
     flex-shrink: 0;
 }
 
 .mok-address-indicators {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 0.75rem;
+    gap: 0.5rem;
     padding: 1rem;
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid #e9ecef;
     min-height: 600px;
     align-content: start;
-    /* Calculate height for 127 indicators (16 rows * ~60px per row) */
+    /* Calculate height for 127 indicators with larger size */
     height: auto;
     max-height: none;
 }
 
 .mok-address-indicator {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    text-align: center;
+    line-height: 1.1;
+    word-wrap: break-word;
+    padding: 2px;
 }
 
 .mok-address-indicator.inactive {
@@ -241,11 +246,13 @@
 
 .mok-address-indicator.active {
     background: linear-gradient(135deg, #28a745, #20c997);
-    color: #dc3545;
+    color: white;
     border-color: #1e7e34;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.7rem;
     box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    min-width: 60px;
+    min-height: 60px;
 }
 
 .mok-address-indicator.selected {

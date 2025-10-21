@@ -350,6 +350,7 @@ class RS485Adjuster {
         this.mokCreateSectionBtn = null;
         this.mokDeleteSectionBtn = null;
         this.mokWriteConfigBtn = null;
+        this.mokClearConfigBtn = null;
         this.mokScanBlock = null;
         
         // Initialize MOK scan elements
@@ -364,6 +365,7 @@ class RS485Adjuster {
         this.mokCreateSectionBtn = document.getElementById('mok-create-section');
         this.mokDeleteSectionBtn = document.getElementById('mok-delete-section');
         this.mokWriteConfigBtn = document.getElementById('mok-write-config');
+        this.mokClearConfigBtn = document.getElementById('mok-clear-config');
         
         // Find the left scan block (first mok-scan-block)
         const scanBlocks = document.querySelectorAll('.mok-scan-block');
@@ -372,6 +374,9 @@ class RS485Adjuster {
         // Initialize MOK scan state if not already done
         if (!this.mokScanResults) {
             this.mokScanResults = new Array(127).fill(false);
+        }
+        if (!this.mokDeviceInfo) {
+            this.mokDeviceInfo = new Array(127).fill(null); // Store device type info for each address
         }
         if (this.mokScanInProgress === undefined) {
             this.mokScanInProgress = false;
@@ -404,6 +409,9 @@ class RS485Adjuster {
         
         // Initialize arrow buttons state
         this.updateArrowButtonsState();
+        
+        // Load saved configuration
+        this.loadMokConfigAuto();
         
         // Bind MOK-specific events
         this.bindMokEvents();
@@ -2025,28 +2033,58 @@ class RS485Adjuster {
         // Check if we're waiting for MOK scan response
         else if (this.waitingForMokScanResponse) {
             try {
+                // First try to parse as scan response (list of addresses)
                 const scanResults = this.parseMokScanResponse(data);
                 if (scanResults && scanResults.length > 0) {
-                    // Update scan results
+                    // Update scan results for addresses found
                     scanResults.forEach(address => {
                         if (address >= 1 && address <= 127) {
                             this.mokScanResults[address - 1] = true;
+                            // Set default device type until we get 24-byte response
+                            if (!this.mokDeviceInfo[address - 1]) {
+                                this.mokDeviceInfo[address - 1] = { type: 'АМ1', address: address };
+                            }
                         }
                     });
                     
                     this.updateMokIndicatorsView();
                     this.updateMokAddressTree();
                     
+                    // Auto-save configuration after scan results update
+                    this.saveMokConfigAuto();
+                    
                     const foundCount = scanResults.length;
                     this.logMessage(`МОК: Найдено ${foundCount} устройств: ${scanResults.join(', ')}`);
                     this.showToast('success', `МОК: Найдено ${foundCount} устройств`);
                 }
                 
-                // Reset waiting flag and button state
-                this.waitingForMokScanResponse = false;
-                this.mokScanInProgress = false;
-                this.mokStartScanBtn.disabled = false;
-                this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+                // Also try to parse as individual device response (24 bytes)
+                const deviceInfo = this.parseIndividualDeviceResponse(data);
+                if (deviceInfo) {
+                    const address = deviceInfo.address;
+                    if (address >= 1 && address <= 127) {
+                        this.mokScanResults[address - 1] = true;
+                        this.mokDeviceInfo[address - 1] = deviceInfo;
+                        this.updateMokIndicatorsView();
+                        this.updateMokAddressTree(); // Update tree to show new device name
+                        
+                        // Auto-save configuration when new device is found
+                        this.saveMokConfigAuto();
+                        
+                        this.logMessage(`МОК: Устройство ${address}: ${deviceInfo.type}`);
+                    }
+                }
+                
+                // Only reset flags if this was a complete scan response (list of addresses)
+                // For individual device responses, keep waiting for more responses
+                if (scanResults && scanResults.length > 0) {
+                    // This was a complete scan list response
+                    this.waitingForMokScanResponse = false;
+                    this.mokScanInProgress = false;
+                    this.mokStartScanBtn.disabled = false;
+                    this.mokStartScanBtn.innerHTML = '<i class="fas fa-search"></i> Начать сканирование';
+                }
+                // For individual responses, don't reset flags - wait for timeout
                 
             } catch (error) {
                 console.error('Error parsing MOK scan response:', error);
@@ -2184,11 +2222,25 @@ class RS485Adjuster {
             this.mokWriteConfigBtn._eventBound = true;
         }
 
+        // Clear config button
+        if (this.mokClearConfigBtn && !this.mokClearConfigBtn._eventBound) {
+            this.mokClearConfigBtn.addEventListener('click', () => this.clearMokConfig());
+            this.mokClearConfigBtn._eventBound = true;
+        }
+
         // Click outside scan block to clear selection
         if (!this.mokOutsideClickBound) {
             document.addEventListener('click', (e) => this.handleMokOutsideClick(e));
             this.mokOutsideClickBound = true;
         }
+    }
+
+    getDeviceDisplayName(address) {
+        // Get device display name - use device type if available, otherwise fallback to address
+        if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1] && this.mokDeviceInfo[address - 1].type) {
+            return this.mokDeviceInfo[address - 1].type;
+        }
+        return `Устройство ${address}`;
     }
 
     createMokAddressIndicators() {
@@ -2244,8 +2296,17 @@ class RS485Adjuster {
             // Update status based on scan results
             if (this.mokScanResults && this.mokScanResults[address - 1]) {
                 indicator.classList.add('active');
+                
+                // Update display text with device type if available
+                if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1]) {
+                    const deviceInfo = this.mokDeviceInfo[address - 1];
+                    indicator.textContent = deviceInfo.type;
+                } else {
+                    indicator.textContent = address; // Fallback to address number
+                }
             } else {
                 indicator.classList.add('inactive');
+                indicator.textContent = address; // Show address number when inactive
             }
             
             // Restore selection if it was selected or matches current selection
@@ -2399,12 +2460,15 @@ class RS485Adjuster {
                         const deviceStatus = isDeviceResponding ? 'active' : 'inactive';
                         const statusIcon = isDeviceResponding ? 'fa-microchip' : 'fa-microchip';
                         
+                        // Get device display name (type if available)
+                        const deviceDisplayName = this.getDeviceDisplayName(address);
+                        
                         treeHTML += `
                             <div class="mok-tree-node device section-device ${isAddressSelected} ${deviceStatus}" data-address="${address}" style="margin-left: 20px;">
                                 <div class="device-info">
                                     <div class="device-left">
                                         <i class="fas ${statusIcon}"></i>
-                                        <span class="device-name">Устройство ${address}</span>
+                                        <span class="device-name">${deviceDisplayName}</span>
                                     </div>
                                     <div class="device-right">
                                         <select class="device-type-select" data-address="${address}" data-section-id="${section.id}">
@@ -2445,12 +2509,15 @@ class RS485Adjuster {
                 const deviceStatus = isDeviceResponding ? 'active' : 'inactive';
                 const statusIcon = isDeviceResponding ? 'fa-microchip' : 'fa-microchip';
                 
+                // Get device display name (type if available)
+                const deviceDisplayName = this.getDeviceDisplayName(address);
+                
                 treeHTML += `
                     <div class="mok-tree-node device ${isSelected} ${deviceStatus}" data-address="${address}">
                         <div class="device-info">
                             <div class="device-left">
                                 <i class="fas ${statusIcon}"></i>
-                                <span class="device-name">Устройство ${address}</span>
+                                <span class="device-name">${deviceDisplayName}</span>
                             </div>
                             <div class="device-status">
                                 <span class="status-text ${deviceStatus}">${isDeviceResponding ? 'Активно' : 'Не отвечает'}</span>
@@ -2584,10 +2651,16 @@ class RS485Adjuster {
                 });
                 
                 if (!addressExists) {
-                    // Add new address object with default type
+                    // Get device type from scan results if available
+                    let deviceType = 'Охранный'; // Default type
+                    if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1] && this.mokDeviceInfo[address - 1].type) {
+                        deviceType = this.mokDeviceInfo[address - 1].type;
+                    }
+                    
+                    // Add new address object with device type from scan or default
                     section.addresses.push({
                         address: address,
-                        type: 'Охранный' // Default type
+                        type: deviceType
                     });
                     // Sort by address number
                     section.addresses.sort((a, b) => {
@@ -2595,15 +2668,20 @@ class RS485Adjuster {
                         const addrB = typeof b === 'number' ? b : b.address;
                         return addrA - addrB;
                     });
-                    this.showToast('success', `Адрес ${address} добавлен в ${section.name}`);
+                    const deviceDisplayName = this.getDeviceDisplayName(address);
+                    this.showToast('success', `${deviceDisplayName} добавлен в ${section.name}`);
                 }
             }
         } else {
-            this.showToast('info', `Адрес ${address} удален из всех разделов`);
+            const deviceDisplayName = this.getDeviceDisplayName(address);
+            this.showToast('info', `${deviceDisplayName} удален из всех разделов`);
         }
         
         // Update the tree display
         this.updateMokAddressTree(this.mokSelectedAddress);
+        
+        // Auto-save configuration
+        this.saveMokConfigAuto();
     }
 
     updateDeviceType(address, sectionId, newType) {
@@ -2634,7 +2712,12 @@ class RS485Adjuster {
                     type: newType
                 };
             }
-            this.showToast('success', `Тип устройства ${address} изменен на ${newType}`);
+            
+            // Auto-save configuration
+            this.saveMokConfigAuto();
+            
+            const deviceDisplayName = this.getDeviceDisplayName(address);
+            this.showToast('success', `Тип ${deviceDisplayName} изменен на ${newType}`);
         } else {
             this.showToast('error', 'Адрес не найден в разделе');
         }
@@ -2649,6 +2732,122 @@ class RS485Adjuster {
         }
         if (this.mokArrowRightBtn) {
             this.mokArrowRightBtn.disabled = !bothSelected;
+        }
+    }
+
+    async saveMokConfigAuto() {
+        try {
+            // Prepare configuration data
+            const configData = {
+                sections: this.mokSections || [],
+                scanResults: this.mokScanResults || [],
+                deviceInfo: this.mokDeviceInfo || [],
+                timestamp: new Date().toISOString()
+            };
+
+            // Save via IPC
+            const result = await ipcRenderer.invoke('save-mok-config', configData);
+            
+            if (result.success) {
+                console.log('MOK config auto-saved');
+            } else {
+                console.error('Failed to auto-save MOK config:', result.message);
+            }
+        } catch (error) {
+            console.error('Error in auto-save MOK config:', error);
+        }
+    }
+
+    async loadMokConfigAuto() {
+        try {
+            const result = await ipcRenderer.invoke('load-mok-config');
+            
+            if (result.success && result.data) {
+                // Restore sections
+                if (result.data.sections && Array.isArray(result.data.sections)) {
+                    this.mokSections = result.data.sections;
+                }
+                
+                // Restore scan results
+                if (result.data.scanResults && Array.isArray(result.data.scanResults)) {
+                    this.mokScanResults = new Array(127).fill(false);
+                    result.data.scanResults.forEach((isFound, index) => {
+                        if (index < 127) {
+                            this.mokScanResults[index] = isFound;
+                        }
+                    });
+                }
+                
+                // Restore device info
+                if (result.data.deviceInfo && Array.isArray(result.data.deviceInfo)) {
+                    this.mokDeviceInfo = new Array(127).fill(null);
+                    result.data.deviceInfo.forEach((deviceInfo, index) => {
+                        if (index < 127 && deviceInfo) {
+                            this.mokDeviceInfo[index] = deviceInfo;
+                        }
+                    });
+                }
+                
+                // Update UI only if we're on MOK tab
+                if (this.currentTab === 'mok') {
+                    this.updateMokIndicatorsView();
+                    this.updateMokAddressTree();
+                }
+                
+                console.log('MOK config auto-loaded');
+            }
+        } catch (error) {
+            console.error('Error in auto-load MOK config:', error);
+        }
+    }
+
+    async clearMokConfig() {
+        try {
+            // Show confirmation dialog
+            const confirmed = confirm('Вы уверены, что хотите удалить все разделы и очистить дерево системы?\n\nЭто действие нельзя отменить.');
+            
+            if (!confirmed) {
+                return;
+            }
+
+            // Show loading state
+            if (this.mokClearConfigBtn) {
+                this.mokClearConfigBtn.disabled = true;
+                this.mokClearConfigBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Очистка...';
+            }
+
+            // Clear all data
+            this.mokSections = [];
+            this.mokScanResults = new Array(127).fill(false);
+            this.mokDeviceInfo = new Array(127).fill(null);
+            this.mokSelectedAddress = null;
+            this.mokSelectedSection = null;
+
+            // Clear internal config file
+            const result = await ipcRenderer.invoke('clear-mok-config');
+            
+            if (result.success) {
+                // Update UI
+                this.updateMokIndicatorsView();
+                this.updateMokAddressTree();
+                this.updateArrowButtonsState();
+                
+                this.logMessage('Конфигурация МОК полностью очищена');
+                this.showToast('success', 'Дерево системы очищено');
+            } else {
+                this.showToast('error', 'Ошибка очистки конфигурации: ' + result.message);
+            }
+
+        } catch (error) {
+            console.error('Error clearing MOK config:', error);
+            this.logMessage(`Ошибка очистки конфигурации МОК: ${error.message}`);
+            this.showToast('error', 'Ошибка очистки конфигурации');
+        } finally {
+            // Restore button state
+            if (this.mokClearConfigBtn) {
+                this.mokClearConfigBtn.disabled = false;
+                this.mokClearConfigBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Удалить дерево';
+            }
         }
     }
 
@@ -2843,6 +3042,9 @@ class RS485Adjuster {
             // Update the display
             this.updateMokAddressTree();
             
+            // Auto-save imported configuration
+            this.saveMokConfigAuto();
+            
             this.logMessage(`Импортировано ${this.mokSections.length} разделов из конфигурации`);
             this.showToast('success', `Успешно импортировано ${this.mokSections.length} разделов`);
 
@@ -2931,8 +3133,9 @@ class RS485Adjuster {
         this.mokStartScanBtn.disabled = true;
         this.mokStartScanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сканирование...';
         
-        // Reset scan results
+        // Reset scan results and device info
         this.mokScanResults = new Array(127).fill(false);
+        this.mokDeviceInfo = new Array(127).fill(null);
         this.updateMokIndicatorsView();
         this.updateMokAddressTree();
         
@@ -3040,13 +3243,158 @@ class RS485Adjuster {
         }
     }
 
+    parseDeviceInfoFrom24Bytes(responseData, address) {
+        try {
+            // Parse 24-byte response to determine device type
+            // This function should parse the actual device response format
+            
+            // For now, we'll implement the logic based on device types described:
+            // АМ1 - single address
+            // АМ8 - 8 addresses on board (АМ8/1-АМ8/8)  
+            // РМ4 - 4 addresses on board (РМ4/1-РМ4/4)
+            // КЛ - keyboard
+            
+            // This is a placeholder implementation - should be adjusted based on actual 24-byte response format
+            let deviceType = 'АМ1'; // Default
+            let deviceNumber = null;
+            
+            // Try to determine device type from response data
+            // Assuming the response contains device type information in specific bytes
+            // This logic should be updated based on actual device protocol
+            
+            // For now, we'll use a simple mapping based on address ranges for testing
+            // In real implementation, this should parse the actual 24-byte response
+            
+            // Try to parse response data (could be hex string, byte array, or text)
+            let responseBytes = null;
+            
+            if (typeof responseData === 'string') {
+                // Try to parse as hex string first
+                if (responseData.length === 48 && /^[0-9a-fA-F]+$/.test(responseData)) {
+                    // 24 bytes as hex string
+                    responseBytes = [];
+                    for (let i = 0; i < responseData.length; i += 2) {
+                        responseBytes.push(parseInt(responseData.substr(i, 2), 16));
+                    }
+                } else {
+                    // Try to parse as text representation
+                    responseBytes = new TextEncoder().encode(responseData).slice(0, 24);
+                }
+            } else if (Array.isArray(responseData)) {
+                responseBytes = responseData.slice(0, 24);
+            }
+            
+            if (responseBytes && responseBytes.length >= 4) {
+                // Parse device type from response bytes (adjust based on actual protocol)
+                // Assuming first 4 bytes contain device type identifier
+                const deviceTypeBytes = responseBytes.slice(0, 4);
+                const typeString = new TextDecoder().decode(deviceTypeBytes).replace(/\0/g, '').trim();
+                
+                if (typeString.includes('AM8') || typeString.includes('АМ8')) {
+                    // Extract channel number from byte 4 or 5
+                    const channelByte = responseBytes[4] || responseBytes[5] || 1;
+                    deviceNumber = Math.min(8, Math.max(1, channelByte));
+                    deviceType = `АМ8/${deviceNumber}`;
+                } else if (typeString.includes('PM4') || typeString.includes('РМ4')) {
+                    // Extract channel number for PM4 (1-4)
+                    const channelByte = responseBytes[4] || responseBytes[5] || 1;
+                    deviceNumber = Math.min(4, Math.max(1, channelByte));
+                    deviceType = `РМ4/${deviceNumber}`;
+                } else if (typeString.includes('KL') || typeString.includes('КЛ')) {
+                    deviceType = 'КЛ';
+                } else {
+                    deviceType = 'АМ1';
+                }
+            } else {
+                // Fallback logic based on address ranges for testing
+                // This should be removed when real 24-byte parsing is implemented
+                if (address >= 1 && address <= 8) {
+                    deviceType = `АМ8/${address}`;
+                } else if (address >= 9 && address <= 12) {
+                    deviceType = `РМ4/${address - 8}`;
+                } else if (address >= 13 && address <= 15) {
+                    deviceType = 'КЛ';
+                }
+            }
+            
+            return {
+                type: deviceType,
+                address: address
+            };
+        } catch (error) {
+            console.error('Error parsing device info:', error);
+            return {
+                type: 'АМ1',
+                address: address
+            };
+        }
+    }
+
+    parseIndividualDeviceResponse(data) {
+        try {
+            // Try to parse individual device response format
+            // This could be in format: ADDRESS:24BYTE_RESPONSE_DATA or similar
+            
+            // Check if data looks like a 24-byte response with address prefix
+            if (data.includes(':')) {
+                const parts = data.split(':');
+                if (parts.length >= 2) {
+                    const address = parseInt(parts[0]);
+                    const responseData = parts[1];
+                    
+                    if (!isNaN(address) && address >= 1 && address <= 127) {
+                        // Try to parse the 24-byte response data
+                        return this.parseDeviceInfoFrom24Bytes(responseData, address);
+                    }
+                }
+            }
+            
+            // Try to parse as hex data (24 bytes = 48 hex characters)
+            if (data.length === 48 && /^[0-9a-fA-F]+$/.test(data)) {
+                // This looks like 24-byte hex data, but we need to know the address
+                // For now, return null as we can't determine address from hex data alone
+                return null;
+            }
+            
+            // Try to extract address and device type from response string
+            // Assuming format might be something like: "ADDR:DEVICE_TYPE" or similar
+            const addressMatch = data.match(/(\d+)/);
+            if (addressMatch) {
+                const address = parseInt(addressMatch[1]);
+                if (address >= 1 && address <= 127) {
+                    return this.parseDeviceInfoFrom24Bytes(data, address);
+                }
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Error parsing individual device response:', error);
+            return null;
+        }
+    }
+
     simulateMokScanResults() {
         // Simulate responses from some addresses (for testing)
-        const respondingAddresses = [1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 110, 120];
+        const respondingAddresses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 110, 120];
         
         respondingAddresses.forEach(address => {
             if (address <= 127) {
                 this.mokScanResults[address - 1] = true;
+                
+                // Add simulated device type information
+                let deviceType = 'АМ1';
+                if (address >= 1 && address <= 8) {
+                    deviceType = `АМ8/${address}`;
+                } else if (address >= 9 && address <= 12) {
+                    deviceType = `РМ4/${address - 8}`;
+                } else if (address >= 13 && address <= 15) {
+                    deviceType = 'КЛ';
+                }
+                
+                this.mokDeviceInfo[address - 1] = {
+                    type: deviceType,
+                    address: address
+                };
             }
         });
         
@@ -3080,6 +3428,9 @@ class RS485Adjuster {
         this.mokSections.push(newSection);
         this.updateMokAddressTree();
         
+        // Auto-save configuration
+        this.saveMokConfigAuto();
+        
         this.showToast('success', `Создан новый раздел: ${newSection.name}`);
     }
 
@@ -3101,6 +3452,10 @@ class RS485Adjuster {
             // Remove section by ID
             this.mokSections = this.mokSections.filter(section => section.id !== sectionId);
             this.updateMokAddressTree();
+            
+            // Auto-save configuration
+            this.saveMokConfigAuto();
+            
             this.showToast('info', 'Раздел удален');
         } else {
             this.showToast('warning', 'Выбранный элемент не является разделом');
@@ -3176,6 +3531,10 @@ class RS485Adjuster {
             // Update section name
             section.name = newName;
             this.updateMokAddressTree(this.mokSelectedAddress);
+            
+            // Auto-save configuration
+            this.saveMokConfigAuto();
+            
             this.showToast('success', `Название раздела изменено на "${newName}"`);
             closeModal();
         });
