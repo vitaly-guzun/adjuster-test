@@ -628,6 +628,33 @@
     }
 }
 
+/* MOK Scenarios Section Styles */
+.mok-scenarios-container {
+    margin: 2rem 0;
+    padding: 0 1rem;
+}
+
+.mok-scenarios-block {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    padding: 2rem;
+    min-height: 200px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.scenarios-placeholder {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 2rem;
+}
+
+.scenarios-placeholder p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
 @media (max-width: 768px) {
     .mok-scan-container {
         padding: 1rem;
@@ -653,5 +680,15 @@
         width: 40px;
         height: 40px;
         font-size: 0.8rem;
+    }
+    
+    .mok-scenarios-container {
+        padding: 0 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .mok-scenarios-block {
+        padding: 1rem;
+        min-height: 150px;
     }
 }

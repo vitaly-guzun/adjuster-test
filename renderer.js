@@ -2243,6 +2243,150 @@ class RS485Adjuster {
         return `Устройство ${address}`;
     }
 
+    showDeviceTypeSelectionDialog(address) {
+        // Create modal dialog for device type selection
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        // Generate device type options
+        const deviceTypes = this.generateDeviceTypeOptions();
+        
+        const modalContent = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Выбор типа устройства для адреса ${address}</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="device-type-select">Тип устройства:</label>
+                        <select id="device-type-select" class="form-input" style="width: 100%;">
+                            <option value="">Выберите тип устройства</option>
+                            ${deviceTypes.map(type => `<option value="${type}" ${this.getCurrentDeviceType(address) === type ? 'selected' : ''}>${type}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <button id="remove-device-type" class="btn btn-secondary" style="margin-right: 1rem;">
+                            <i class="fas fa-times"></i> Убрать тип устройства
+                        </button>
+                        <small class="text-muted">Оставьте пустым, чтобы убрать назначенный тип</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancel-device-type" class="btn btn-secondary">Отмена</button>
+                    <button id="save-device-type" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        `;
+        
+        modal.innerHTML = modalContent;
+        document.body.appendChild(modal);
+
+        // Focus on select
+        const select = modal.querySelector('#device-type-select');
+        select.focus();
+
+        // Handle events
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.querySelector('#cancel-device-type').addEventListener('click', closeModal);
+        
+        modal.querySelector('#remove-device-type').addEventListener('click', () => {
+            select.value = '';
+        });
+
+        modal.querySelector('#save-device-type').addEventListener('click', () => {
+            const selectedType = select.value.trim();
+            this.assignDeviceType(address, selectedType);
+            closeModal();
+        });
+
+        // Handle Enter key and Escape
+        select.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                modal.querySelector('#save-device-type').click();
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    generateDeviceTypeOptions() {
+        const types = [
+            'АМ1',
+            // AM8 variants
+            'АМ8/1', 'АМ8/2', 'АМ8/3', 'АМ8/4', 'АМ8/5', 'АМ8/6', 'АМ8/7', 'АМ8/8',
+            // PM4 variants
+            'РМ4/1', 'РМ4/2', 'РМ4/3', 'РМ4/4',
+            // KL variants
+            'КЛ1', 'КЛ2', 'КЛ3', 'КЛ4', 'КЛ5', 'КЛ6', 'КЛ7', 'КЛ8', 'КЛ9', 'КЛ10',
+            'КЛ11', 'КЛ12', 'КЛ13', 'КЛ14', 'КЛ15', 'КЛ16', 'КЛ17', 'КЛ18', 'КЛ19', 'КЛ20',
+            'КЛ21', 'КЛ22', 'КЛ23', 'КЛ24', 'КЛ25', 'КЛ26', 'КЛ27', 'КЛ28', 'КЛ29', 'КЛ30',
+            'КЛ31', 'КЛ32', 'КЛ33', 'КЛ34', 'КЛ35', 'КЛ36', 'КЛ37', 'КЛ38', 'КЛ39', 'КЛ40',
+            'КЛ41', 'КЛ42', 'КЛ43', 'КЛ44', 'КЛ45', 'КЛ46', 'КЛ47', 'КЛ48', 'КЛ49', 'КЛ50',
+            // Sensor variants (СГ с шагом 0.5)
+            'СГ0.5', 'СГ1', 'СГ1.5', 'СГ2', 'СГ2.5', 'СГ3', 'СГ3.5', 'СГ4', 'СГ4.5', 
+            'СГ5', 'СГ5.5', 'СГ6',
+            // Fire sensor
+            'Пожарный датчик'
+        ];
+        return types;
+    }
+
+    getCurrentDeviceType(address) {
+        if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1] && this.mokDeviceInfo[address - 1].type) {
+            return this.mokDeviceInfo[address - 1].type;
+        }
+        return '';
+    }
+
+    assignDeviceType(address, deviceType) {
+        // Initialize device info array if needed
+        if (!this.mokDeviceInfo) {
+            this.mokDeviceInfo = new Array(127).fill(null);
+        }
+
+        if (deviceType.trim()) {
+            // Assign device type
+            this.mokDeviceInfo[address - 1] = {
+                type: deviceType,
+                address: address
+            };
+            
+            // Mark as found device if not already
+            if (!this.mokScanResults) {
+                this.mokScanResults = new Array(127).fill(false);
+            }
+            this.mokScanResults[address - 1] = true;
+            
+            this.showToast('success', `Адресу ${address} назначен тип: ${deviceType}`);
+        } else {
+            // Remove device type
+            this.mokDeviceInfo[address - 1] = null;
+            this.mokScanResults[address - 1] = false;
+            
+            this.showToast('info', `Тип устройства снят с адреса ${address}`);
+        }
+
+        // Update UI
+        this.updateMokIndicatorsView();
+        this.updateMokAddressTree();
+        
+        // Auto-save configuration
+        this.saveMokConfigAuto();
+    }
+
     createMokAddressIndicators() {
         if (!this.mokAddressIndicators) return;
         
@@ -2255,12 +2399,19 @@ class RS485Adjuster {
             indicator.className = 'mok-address-indicator inactive';
             indicator.textContent = i;
             indicator.setAttribute('data-address', i);
+            indicator.setAttribute('title', `Адрес ${i}. Двойной клик для назначения типа устройства`);
             indicator.draggable = true;
             
             // Add click event
             indicator.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectMokAddress(i);
+            });
+            
+            // Add double click event for manual device type assignment
+            indicator.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                this.showDeviceTypeSelectionDialog(i);
             });
             
             // Add drag events
@@ -2301,12 +2452,15 @@ class RS485Adjuster {
                 if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1]) {
                     const deviceInfo = this.mokDeviceInfo[address - 1];
                     indicator.textContent = deviceInfo.type;
+                    indicator.setAttribute('title', `Адрес ${address} - ${deviceInfo.type}. Двойной клик для изменения типа`);
                 } else {
                     indicator.textContent = address; // Fallback to address number
+                    indicator.setAttribute('title', `Адрес ${address}. Двойной клик для назначения типа устройства`);
                 }
             } else {
                 indicator.classList.add('inactive');
                 indicator.textContent = address; // Show address number when inactive
+                indicator.setAttribute('title', `Адрес ${address}. Двойной клик для назначения типа устройства`);
             }
             
             // Restore selection if it was selected or matches current selection
