@@ -2268,6 +2268,7 @@ class RS485Adjuster {
     }
 
     showDeviceTypeSelectionDialog(address) {
+        
         // Create modal dialog for device type selection
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -2306,7 +2307,7 @@ class RS485Adjuster {
         
         modal.innerHTML = modalContent;
         document.body.appendChild(modal);
-
+        
         // Focus on select
         const select = modal.querySelector('#device-type-select');
         select.focus();
@@ -2315,19 +2316,28 @@ class RS485Adjuster {
         const closeModal = () => {
             document.body.removeChild(modal);
         };
-
-        modal.querySelector('.modal-close').addEventListener('click', closeModal);
-        modal.querySelector('#cancel-device-type').addEventListener('click', closeModal);
         
-        modal.querySelector('#remove-device-type').addEventListener('click', () => {
-            select.value = '';
-        });
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = modal.querySelector('#cancel-device-type');
+        const removeBtn = modal.querySelector('#remove-device-type');
+        const saveBtn = modal.querySelector('#save-device-type');
+        
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                select.value = '';
+            });
+        }
 
-        modal.querySelector('#save-device-type').addEventListener('click', () => {
-            const selectedType = select.value.trim();
-            this.assignDeviceType(address, selectedType);
-            closeModal();
-        });
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                const selectedType = select.value.trim();
+                this.assignDeviceType(address, selectedType);
+                closeModal();
+            });
+        }
 
         // Handle Enter key and Escape
         select.addEventListener('keydown', (e) => {
@@ -2376,39 +2386,49 @@ class RS485Adjuster {
     }
 
     assignDeviceType(address, deviceType) {
-        // Initialize device info array if needed
-        if (!this.mokDeviceInfo) {
-            this.mokDeviceInfo = new Array(127).fill(null);
+        // Prevent multiple simultaneous calls
+        if (this._assigningDeviceType) {
+            return;
         }
-
-        if (deviceType.trim()) {
-            // Assign device type
-            this.mokDeviceInfo[address - 1] = {
-                type: deviceType,
-                address: address
-            };
-            
-            // Mark as found device if not already
-            if (!this.mokScanResults) {
-                this.mokScanResults = new Array(127).fill(false);
-            }
-            this.mokScanResults[address - 1] = true;
-            
-            this.showToast('success', `Адресу ${address} назначен тип: ${deviceType}`);
-        } else {
-            // Remove device type
-            this.mokDeviceInfo[address - 1] = null;
-            this.mokScanResults[address - 1] = false;
-            
-            this.showToast('info', `Тип устройства снят с адреса ${address}`);
-        }
-
-        // Update UI
-        this.updateMokIndicatorsView();
-        this.updateMokAddressTree();
+        this._assigningDeviceType = true;
         
-        // Auto-save configuration
-        this.saveMokConfigAuto();
+        try {
+            // Initialize device info array if needed
+            if (!this.mokDeviceInfo) {
+                this.mokDeviceInfo = new Array(127).fill(null);
+            }
+
+            if (deviceType.trim()) {
+                // Assign device type
+                this.mokDeviceInfo[address - 1] = {
+                    type: deviceType,
+                    address: address
+                };
+                
+                // Mark as found device if not already
+                if (!this.mokScanResults) {
+                    this.mokScanResults = new Array(127).fill(false);
+                }
+                this.mokScanResults[address - 1] = true;
+                
+                this.showToast('success', `Адресу ${address} назначен тип: ${deviceType}`);
+            } else {
+                // Remove device type
+                this.mokDeviceInfo[address - 1] = null;
+                this.mokScanResults[address - 1] = false;
+                
+                this.showToast('info', `Тип устройства снят с адреса ${address}`);
+            }
+
+            // Update UI
+            this.updateMokIndicatorsView();
+            this.updateMokAddressTree();
+            
+            // Auto-save configuration
+            this.saveMokConfigAuto();
+        } finally {
+            this._assigningDeviceType = false;
+        }
     }
 
     createMokAddressIndicators() {
@@ -2432,7 +2452,7 @@ class RS485Adjuster {
                 this.selectMokAddress(i);
             });
             
-            // Double click events will be handled by delegation on the container
+            // Double click events will be handled by rebindDoubleClickHandlers
             
             // Add drag events
             indicator.addEventListener('dragstart', (e) => this.handleDragStart(e, i));
@@ -2441,14 +2461,7 @@ class RS485Adjuster {
             this.mokAddressIndicators.appendChild(indicator);
         }
         
-        // Add event delegation for double click on indicators
-        this.mokAddressIndicators.addEventListener('dblclick', (e) => {
-            const indicator = e.target.closest('.mok-address-indicator');
-            if (indicator) {
-                const address = parseInt(indicator.getAttribute('data-address'));
-                this.showDeviceTypeSelectionDialog(address);
-            }
-        });
+        // Double click events will be handled individually on each indicator
         
         // Update view
         this.updateMokIndicatorsView();
@@ -2489,6 +2502,8 @@ class RS485Adjuster {
                 this.selectMokAddress(i);
             });
             
+            // Double click events will be handled by rebindDoubleClickHandlers
+            
             // Add drag events
             indicator.addEventListener('dragstart', (e) => this.handleDragStart(e, i));
             indicator.addEventListener('dragend', (e) => this.handleDragEnd(e));
@@ -2522,18 +2537,50 @@ class RS485Adjuster {
         }
     }
 
+    rebindDoubleClickHandlers() {
+        if (!this.mokAddressIndicators) {
+            return;
+        }
+        
+        // Prevent multiple simultaneous rebinding
+        if (this._rebindingHandlers) {
+            return;
+        }
+        this._rebindingHandlers = true;
+        
+        try {
+            const indicators = this.mokAddressIndicators.querySelectorAll('.mok-address-indicator');
+            
+            indicators.forEach((indicator) => {
+                // Remove ALL existing handlers first
+                const newIndicator = indicator.cloneNode(true);
+                indicator.parentNode.replaceChild(newIndicator, indicator);
+                
+                // Add new handler to the fresh element
+                newIndicator.addEventListener('dblclick', this.handleIndicatorDoubleClick.bind(this));
+            });
+        } finally {
+            this._rebindingHandlers = false;
+        }
+    }
+
+    handleIndicatorDoubleClick(e) {
+        e.stopPropagation();
+        const address = parseInt(e.currentTarget.getAttribute('data-address'));
+        this.showDeviceTypeSelectionDialog(address);
+    }
+
     clearAllAssignments() {
         // Show confirmation dialog
         if (!confirm('Вы уверены, что хотите очистить все назначения типов устройств? Это действие нельзя отменить.')) {
             return;
         }
         
-        // Clear all device assignments
+        // Clear device assignments and scan results to reset indicators to inactive state
         if (this.mokDeviceInfo) {
             this.mokDeviceInfo.fill(null);
         }
         
-        // Clear scan results
         if (this.mokScanResults) {
             this.mokScanResults.fill(false);
         }
@@ -2564,12 +2611,15 @@ class RS485Adjuster {
             // Remove status classes first
             indicator.classList.remove('active', 'inactive');
             
-            // Update status based on scan results
-            if (this.mokScanResults && this.mokScanResults[address - 1]) {
+            // Update status based on device assignment or scan results
+            const hasDeviceAssignment = this.mokDeviceInfo && this.mokDeviceInfo[address - 1];
+            const hasScanResult = this.mokScanResults && this.mokScanResults[address - 1];
+            
+            if (hasDeviceAssignment || hasScanResult) {
                 indicator.classList.add('active');
                 
                 // Update display text with device type if available
-                if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1]) {
+                if (hasDeviceAssignment) {
                     const deviceInfo = this.mokDeviceInfo[address - 1];
                     // Show as fraction: address on top, device type on bottom
                     indicator.innerHTML = `<div class="address-fraction">
@@ -2605,6 +2655,9 @@ class RS485Adjuster {
         
         // Update arrow buttons state based on selections
         this.updateArrowButtonsState();
+        
+        // Re-add double click handlers after DOM update
+        this.rebindDoubleClickHandlers();
     }
 
     mokScrollIndicators(direction) {
@@ -2678,7 +2731,9 @@ class RS485Adjuster {
     }
 
     updateMokAddressTree(selectedAddress = null) {
-        if (!this.mokAddressTree || !this.mokFoundCount) return;
+        if (!this.mokAddressTree) {
+            return;
+        }
         
         // Initialize sections if not exists
         if (!this.mokSections) {
@@ -2693,8 +2748,6 @@ class RS485Adjuster {
                 }
             });
         }
-        
-        this.mokFoundCount.textContent = foundAddresses.length.toString();
         
         // Create tree structure with sections and found devices
         let treeHTML = '';
@@ -3087,7 +3140,7 @@ class RS485Adjuster {
     async clearMokConfig() {
         try {
             // Show confirmation dialog
-            const confirmed = confirm('Вы уверены, что хотите удалить все разделы и очистить дерево системы?\n\nЭто действие нельзя отменить.');
+            const confirmed = confirm('Вы уверены, что хотите удалить все разделы и очистить дерево системы?\n\nЭто действие очистит только дерево системы, назначения типов устройств останутся неизменными.');
             
             if (!confirmed) {
                 return;
@@ -3099,10 +3152,8 @@ class RS485Adjuster {
                 this.mokClearConfigBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Очистка...';
             }
 
-            // Clear all data
+            // Clear only tree data (keep device assignments intact)
             this.mokSections = [];
-            this.mokScanResults = new Array(127).fill(false);
-            this.mokDeviceInfo = new Array(127).fill(null);
             this.mokSelectedAddress = null;
             this.mokSelectedSection = null;
 
