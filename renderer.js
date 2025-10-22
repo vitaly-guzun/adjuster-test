@@ -2571,8 +2571,17 @@ class RS485Adjuster {
                 // Update display text with device type if available
                 if (this.mokDeviceInfo && this.mokDeviceInfo[address - 1]) {
                     const deviceInfo = this.mokDeviceInfo[address - 1];
-                    indicator.textContent = deviceInfo.type;
+                    // Show as fraction: address on top, device type on bottom
+                    indicator.innerHTML = `<div class="address-fraction">
+                        <div class="address-top">${address}</div>
+                        <div class="device-type-bottom">${deviceInfo.type}</div>
+                    </div>`;
                     indicator.setAttribute('title', `Адрес ${address} - ${deviceInfo.type}. Двойной клик для изменения типа`);
+                    
+                    // Force DOM update
+                    indicator.style.display = 'none';
+                    indicator.offsetHeight; // Trigger reflow
+                    indicator.style.display = 'flex';
                 } else {
                     indicator.textContent = address; // Fallback to address number
                     indicator.setAttribute('title', `Адрес ${address}. Двойной клик для назначения типа устройства`);
