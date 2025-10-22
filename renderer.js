@@ -2408,11 +2408,7 @@ class RS485Adjuster {
                 this.selectMokAddress(i);
             });
             
-            // Add double click event for manual device type assignment
-            indicator.addEventListener('dblclick', (e) => {
-                e.stopPropagation();
-                this.showDeviceTypeSelectionDialog(i);
-            });
+            // Double click events will be handled by delegation on the container
             
             // Add drag events
             indicator.addEventListener('dragstart', (e) => this.handleDragStart(e, i));
@@ -2420,6 +2416,15 @@ class RS485Adjuster {
             
             this.mokAddressIndicators.appendChild(indicator);
         }
+        
+        // Add event delegation for double click on indicators
+        this.mokAddressIndicators.addEventListener('dblclick', (e) => {
+            const indicator = e.target.closest('.mok-address-indicator');
+            if (indicator) {
+                const address = parseInt(indicator.getAttribute('data-address'));
+                this.showDeviceTypeSelectionDialog(address);
+            }
+        });
         
         // Update view
         this.updateMokIndicatorsView();
