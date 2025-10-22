@@ -11,18 +11,23 @@
         <div class="mok-scan-block">
             <div class="mok-scan-header">
                 <div class="mok-header-left">
-                    <h4>Сканирование шины RS485</h4>
-                    <span class="mok-scan-info">Найденных устройств: <span id="mokFoundCount">0</span></span>
+                    <h4>План адресов системы</h4>
                 </div>
-                <button id="mok-start-scan" class="btn btn-info">
-                    <i class="fas fa-search"></i>
-                    Начать сканирование
-                </button>
             </div>
             <div class="mok-scrollable-content">
                 <div class="mok-address-indicators" id="mokAddressIndicators">
-                    <!-- 127 circular indicators will be generated here -->
+                    <!-- Address indicators will be generated here -->
                 </div>
+            </div>
+            <div class="mok-block-footer">
+                <button id="mok-add-addresses" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Добавить 10 адресов
+                </button>
+                <button id="mok-clear-assignments" class="btn btn-warning">
+                    <i class="fas fa-eraser"></i>
+                    Очистить назначения
+                </button>
             </div>
         </div>
         
@@ -40,26 +45,26 @@
         <div class="mok-scan-block">
             <div class="mok-scan-header">
                 <div class="mok-header-left">
-                    <h4>Дерево системы</h4>
+                    <h4>Дерево системы и сценарии</h4>
                 </div>
-                <div class="mok-header-controls">
-                    <button id="mok-import-config" class="btn btn-info btn-small">
-                        <i class="fas fa-upload"></i>
-                        Импорт конфиг МОК
-                    </button>
-                    <button id="mok-export-config" class="btn btn-warning btn-small">
-                        <i class="fas fa-file-export"></i>
-                        Экспорт конфиг МОК
-                    </button>
-                    <button id="mok-create-section" class="btn btn-success btn-small">
-                        <i class="fas fa-plus"></i>
-                        Создать раздел
-                    </button>
-                    <button id="mok-delete-section" class="btn btn-danger btn-small">
-                        <i class="fas fa-trash"></i>
-                        Удалить раздел
-                    </button>
-                </div>
+            </div>
+            <div class="mok-header-controls">
+                <button id="mok-import-config" class="btn btn-info btn-small">
+                    <i class="fas fa-upload"></i>
+                    Импорт конфиг МОК
+                </button>
+                <button id="mok-export-config" class="btn btn-warning btn-small">
+                    <i class="fas fa-file-export"></i>
+                    Экспорт конфиг МОК
+                </button>
+                <button id="mok-create-section" class="btn btn-success btn-small">
+                    <i class="fas fa-plus"></i>
+                    Создать раздел
+                </button>
+                <button id="mok-delete-section" class="btn btn-danger btn-small">
+                    <i class="fas fa-trash"></i>
+                    Удалить раздел
+                </button>
             </div>
             <div class="mok-scrollable-content">
                 <div class="mok-address-tree" id="mokAddressTree">

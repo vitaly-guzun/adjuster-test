@@ -345,6 +345,8 @@ class RS485Adjuster {
         this.mokFoundCount = null;
         this.mokArrowLeftBtn = null;
         this.mokArrowRightBtn = null;
+        this.mokAddAddressesBtn = null;
+        this.mokClearAssignmentsBtn = null;
         this.mokImportConfigBtn = null;
         this.mokExportConfigBtn = null;
         this.mokCreateSectionBtn = null;
@@ -360,6 +362,8 @@ class RS485Adjuster {
         this.mokFoundCount = document.getElementById('mokFoundCount');
         this.mokArrowLeftBtn = document.getElementById('mok-arrow-left');
         this.mokArrowRightBtn = document.getElementById('mok-arrow-right');
+        this.mokAddAddressesBtn = document.getElementById('mok-add-addresses');
+        this.mokClearAssignmentsBtn = document.getElementById('mok-clear-assignments');
         this.mokImportConfigBtn = document.getElementById('mok-import-config');
         this.mokExportConfigBtn = document.getElementById('mok-export-config');
         this.mokCreateSectionBtn = document.getElementById('mok-create-section');
@@ -386,6 +390,14 @@ class RS485Adjuster {
         }
         if (this.mokIndicatorsPerPage === undefined) {
             this.mokIndicatorsPerPage = 64;
+        }
+        
+        // Pagination variables for address display
+        if (this.mokVisibleAddresses === undefined) {
+            this.mokVisibleAddresses = 40; // Start with 40 addresses
+        }
+        if (this.mokAddressesPerLoad === undefined) {
+            this.mokAddressesPerLoad = 10; // Load 10 more addresses at a time
         }
         if (this.waitingForMokScanResponse === undefined) {
             this.waitingForMokScanResponse = false;
@@ -2194,6 +2206,18 @@ class RS485Adjuster {
             this.mokArrowRightBtn._eventBound = true;
         }
 
+        // Add addresses button
+        if (this.mokAddAddressesBtn && !this.mokAddAddressesBtn._eventBound) {
+            this.mokAddAddressesBtn.addEventListener('click', () => this.addMoreAddresses());
+            this.mokAddAddressesBtn._eventBound = true;
+        }
+
+        // Clear assignments button
+        if (this.mokClearAssignmentsBtn && !this.mokClearAssignmentsBtn._eventBound) {
+            this.mokClearAssignmentsBtn.addEventListener('click', () => this.clearAllAssignments());
+            this.mokClearAssignmentsBtn._eventBound = true;
+        }
+
         // Config import/export buttons
         if (this.mokImportConfigBtn && !this.mokImportConfigBtn._eventBound) {
             this.mokImportConfigBtn.addEventListener('click', () => this.importMokConfig());
@@ -2393,8 +2417,8 @@ class RS485Adjuster {
         // Clear existing indicators
         this.mokAddressIndicators.innerHTML = '';
         
-        // Create 127 circular indicators (addresses 1-127)
-        for (let i = 1; i <= 127; i++) {
+        // Create indicators for visible addresses only
+        for (let i = 1; i <= this.mokVisibleAddresses; i++) {
             const indicator = document.createElement('div');
             indicator.className = 'mok-address-indicator inactive';
             indicator.textContent = i;
@@ -2429,8 +2453,99 @@ class RS485Adjuster {
         // Update view
         this.updateMokIndicatorsView();
         
+        // Update button state
+        this.updateAddAddressesButton();
+        
         // Setup drop zones for sections
         this.setupSectionDropZones();
+    }
+
+    addMoreAddresses() {
+        // Calculate how many more addresses to add
+        const maxAddresses = 127;
+        const currentVisible = this.mokVisibleAddresses;
+        const addressesToAdd = Math.min(this.mokAddressesPerLoad, maxAddresses - currentVisible);
+        
+        if (addressesToAdd <= 0) {
+            this.showToast('info', 'Все адреса уже отображены');
+            return;
+        }
+        
+        // Update visible addresses count
+        this.mokVisibleAddresses += addressesToAdd;
+        
+        // Create new indicators
+        for (let i = currentVisible + 1; i <= this.mokVisibleAddresses; i++) {
+            const indicator = document.createElement('div');
+            indicator.className = 'mok-address-indicator inactive';
+            indicator.textContent = i;
+            indicator.setAttribute('data-address', i);
+            indicator.setAttribute('title', `Адрес ${i}. Двойной клик для назначения типа устройства`);
+            indicator.draggable = true;
+            
+            // Add click event
+            indicator.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectMokAddress(i);
+            });
+            
+            // Add drag events
+            indicator.addEventListener('dragstart', (e) => this.handleDragStart(e, i));
+            indicator.addEventListener('dragend', (e) => this.handleDragEnd(e));
+            
+            this.mokAddressIndicators.appendChild(indicator);
+        }
+        
+        // Update view to show new indicators with proper status
+        this.updateMokIndicatorsView();
+        
+        // Update button state
+        this.updateAddAddressesButton();
+        
+        this.showToast('success', `Добавлено ${addressesToAdd} адресов. Всего отображается: ${this.mokVisibleAddresses}`);
+    }
+
+    updateAddAddressesButton() {
+        if (!this.mokAddAddressesBtn) return;
+        
+        const maxAddresses = 127;
+        const isMaxReached = this.mokVisibleAddresses >= maxAddresses;
+        
+        this.mokAddAddressesBtn.disabled = isMaxReached;
+        
+        if (isMaxReached) {
+            this.mokAddAddressesBtn.innerHTML = '<i class="fas fa-check"></i> Все адреса загружены';
+        } else {
+            const remaining = maxAddresses - this.mokVisibleAddresses;
+            const toAdd = Math.min(this.mokAddressesPerLoad, remaining);
+            this.mokAddAddressesBtn.innerHTML = `<i class="fas fa-plus"></i> Добавить ${toAdd} адресов`;
+        }
+    }
+
+    clearAllAssignments() {
+        // Show confirmation dialog
+        if (!confirm('Вы уверены, что хотите очистить все назначения типов устройств? Это действие нельзя отменить.')) {
+            return;
+        }
+        
+        // Clear all device assignments
+        if (this.mokDeviceInfo) {
+            this.mokDeviceInfo.fill(null);
+        }
+        
+        // Clear scan results
+        if (this.mokScanResults) {
+            this.mokScanResults.fill(false);
+        }
+        
+        // Update UI
+        this.updateMokIndicatorsView();
+        this.updateMokAddressTree();
+        
+        // Auto-save configuration
+        this.saveMokConfigAuto();
+        
+        this.showToast('success', 'Все назначения типов устройств очищены');
     }
 
     updateMokIndicatorsView() {
