@@ -2420,8 +2420,17 @@ class RS485Adjuster {
             return [];
         }
         
-        // Return project device names for selection
-        return projectDevices.map(device => device.name);
+        // Get already assigned device names
+        const assignedDeviceNames = this.mokDeviceInfo ? 
+            this.mokDeviceInfo.filter(device => device && device.type).map(device => device.type) : [];
+        
+        // Filter out already assigned devices
+        const availableDevices = projectDevices.filter(device => 
+            !assignedDeviceNames.includes(device.name)
+        );
+        
+        // Return available project device names for selection
+        return availableDevices.map(device => device.name);
     }
 
     getCurrentDeviceType(address) {
@@ -2445,6 +2454,16 @@ class RS485Adjuster {
             }
 
             if (deviceType.trim()) {
+                // Check for duplicate device names
+                const existingDevice = this.mokDeviceInfo.find((device, index) => 
+                    device && device.type === deviceType && (index + 1) !== address
+                );
+                
+                if (existingDevice) {
+                    this.showToast('error', `Устройство "${deviceType}" уже назначено на адрес ${existingDevice.address}. Выберите другое устройство.`);
+                    return;
+                }
+                
                 // Assign device type
                 this.mokDeviceInfo[address - 1] = {
                     type: deviceType,
@@ -3722,17 +3741,8 @@ class RS485Adjuster {
             'ДИАС-СГ-0.5', 'ДИАС-СГ-1', 'ДИАС-СГ-1.5', 'ДИАС-СГ-2', 'ДИАС-СГ-2.5', 'ДИАС-СГ-3', 'ДИАС-СГ-3.5', 'ДИАС-СГ-4', 'ДИАС-СГ-4.5', 'ДИАС-СГ-5', 'ДИАС-СГ-5.5', 'ДИАС-СГ-6'
         ];
         
-        // Get project device types (assigned devices)
-        const projectDeviceTypes = this.mokProjectDevices ? 
-            this.mokProjectDevices.filter(device => device.assigned).map(device => device.type) : [];
-        
-        // Filter out device types that are already in project
-        const availableDeviceTypes = allDeviceTypes.filter(type => !projectDeviceTypes.includes(type));
-        
-        if (availableDeviceTypes.length === 0) {
-            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет доступных типов устройств</p>';
-            return;
-        }
+        // Show all device types (left panel is constant - always shows all types)
+        const availableDeviceTypes = allDeviceTypes;
         
         const deviceTypesHTML = availableDeviceTypes.map((type, index) => `
             <div class="device-type-item" data-device-type="${type}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; background-color: #f8f9fa;">
@@ -3838,7 +3848,7 @@ class RS485Adjuster {
             if (selectedDeviceType) {
                 const deviceType = selectedDeviceType.dataset.deviceType;
                 this.addDeviceTypeToProject(deviceType);
-                this.populateSystemDeviceTypesList(modal);
+                // Only update project devices list (left panel stays constant)
                 this.populateProjectDevicesList(modal);
             } else {
                 this.showToast('warning', 'Выберите тип устройства для добавления в проект');
@@ -3852,7 +3862,7 @@ class RS485Adjuster {
             if (selectedDevice) {
                 const deviceName = selectedDevice.dataset.deviceId;
                 this.removeDeviceFromProject(deviceName);
-                this.populateSystemDeviceTypesList(modal);
+                // Only update project devices list (left panel stays constant)
                 this.populateProjectDevicesList(modal);
             } else {
                 this.showToast('warning', 'Выберите устройство для удаления из проекта');
@@ -3864,7 +3874,7 @@ class RS485Adjuster {
         clearProjectBtn.addEventListener('click', () => {
             if (confirm('Вы уверены, что хотите очистить все устройства проекта?')) {
                 this.clearProjectDevices();
-                this.populateSystemDeviceTypesList(modal);
+                // Only update project devices list (left panel stays constant)
                 this.populateProjectDevicesList(modal);
                 this.showToast('success', 'Проект очищен');
             }
@@ -3894,28 +3904,46 @@ class RS485Adjuster {
             this.mokProjectDevices = [];
         }
         
-        // Count existing devices of this type in project
-        const existingDevicesOfType = this.mokProjectDevices.filter(d => d.type === deviceType && d.assigned);
-        const nextNumber = existingDevicesOfType.length + 1;
+        // Determine how many addresses this device type has on board
+        let addressesOnBoard = 1;
+        let baseType = deviceType;
         
-        // Check if we've reached the limit of 127 devices per type
-        if (nextNumber > 127) {
-            this.showToast('error', 'Достигнут лимит в 127 устройств данного типа');
-            return;
+        if (deviceType === 'АМ8') {
+            addressesOnBoard = 8;
+            baseType = 'АМ8';
+        } else if (deviceType === 'РМ4') {
+            addressesOnBoard = 4;
+            baseType = 'РМ4';
+        }
+        
+        // Count existing devices of this base type in project
+        const existingDevicesOfType = this.mokProjectDevices.filter(d => d.baseType === baseType && d.assigned);
+        const deviceNumber = Math.floor(existingDevicesOfType.length / addressesOnBoard) + 1;
+        const addressOnBoard = (existingDevicesOfType.length % addressesOnBoard) + 1;
+        
+        // Create device name based on type
+        let deviceName;
+        if (addressesOnBoard === 1) {
+            deviceName = `${baseType}-${deviceNumber}`;
+        } else {
+            deviceName = `${baseType}-${deviceNumber}/${addressOnBoard}`;
         }
         
         // Add new device with the selected type and proper numbering
         const newDevice = {
-            name: `${deviceType} №${nextNumber}`,
+            name: deviceName,
             type: deviceType,
-            number: nextNumber,
+            baseType: baseType,
+            deviceNumber: deviceNumber,
+            addressOnBoard: addressOnBoard,
+            addressesOnBoard: addressesOnBoard,
             assigned: true,
             address: null
         };
         
         this.mokProjectDevices.push(newDevice);
         this.saveMokConfigAuto();
-        this.showToast('success', `${deviceType} №${nextNumber} добавлен в проект`);
+        this.showToast('success', `${deviceName} добавлен в проект`);
     }
 
     addDeviceToProject(deviceName) {
@@ -3932,20 +3960,36 @@ class RS485Adjuster {
         if (this.mokProjectDevices) {
             const device = this.mokProjectDevices.find(d => d.name === deviceName);
             if (device) {
-                const deviceType = device.type;
-                const deviceNumber = device.number;
+                const baseType = device.baseType;
+                const deviceNumber = device.deviceNumber;
+                const addressOnBoard = device.addressOnBoard;
                 
                 // Remove the device
                 device.assigned = false;
                 
-                // Renumber remaining devices of the same type
+                // Get all remaining devices of the same base type, sorted by device number and address
                 const remainingDevicesOfType = this.mokProjectDevices.filter(d => 
-                    d.type === deviceType && d.assigned && d.number > deviceNumber
-                );
+                    d.baseType === baseType && d.assigned
+                ).sort((a, b) => {
+                    if (a.deviceNumber !== b.deviceNumber) {
+                        return a.deviceNumber - b.deviceNumber;
+                    }
+                    return a.addressOnBoard - b.addressOnBoard;
+                });
                 
-                remainingDevicesOfType.forEach(remainingDevice => {
-                    remainingDevice.number = remainingDevice.number - 1;
-                    remainingDevice.name = `${deviceType} №${remainingDevice.number}`;
+                // Renumber all remaining devices
+                remainingDevicesOfType.forEach((remainingDevice, index) => {
+                    const newDeviceNumber = Math.floor(index / remainingDevice.addressesOnBoard) + 1;
+                    const newAddressOnBoard = (index % remainingDevice.addressesOnBoard) + 1;
+                    
+                    remainingDevice.deviceNumber = newDeviceNumber;
+                    remainingDevice.addressOnBoard = newAddressOnBoard;
+                    
+                    if (remainingDevice.addressesOnBoard === 1) {
+                        remainingDevice.name = `${baseType}-${newDeviceNumber}`;
+                    } else {
+                        remainingDevice.name = `${baseType}-${newDeviceNumber}/${newAddressOnBoard}`;
+                    }
                 });
                 
                 this.saveMokConfigAuto();
