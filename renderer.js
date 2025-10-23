@@ -3216,12 +3216,12 @@ class RS485Adjuster {
                     
                     <div id="device-types-section">
                         <h6 style="font-size: 14px; margin-bottom: 0.5rem;">Типы устройств в системе:</h6>
-                        <div id="device-types-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        <div id="device-types-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; align-items: flex-start;">
                             <!-- Device types will be populated here -->
                         </div>
                     </div>
                     
-                    <div id="device-list-container">
+                    <div id="device-list-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem;">
                         <!-- Device list will be populated here -->
                     </div>
                 </div>
@@ -3275,13 +3275,13 @@ class RS485Adjuster {
         const container = modal.querySelector('#device-list-container');
         
         if (!this.mokProjectDevices || this.mokProjectDevices.length === 0) {
-            container.innerHTML = '<p style="color: #666; font-style: italic;">Нет устройств в системе</p>';
+            container.innerHTML = '';
             return;
         }
         
         const deviceListHTML = this.mokProjectDevices.map((device, index) => `
             <div class="device-item" data-index="${index}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">
-                <strong>${device.name}</strong> (№${device.number}) - ${device.type}
+                ${index + 1}. <strong>${device.name}</strong> - ${device.type}
             </div>
         `).join('');
         
@@ -3322,6 +3322,7 @@ class RS485Adjuster {
         // Add click handlers for device type selection
         container.querySelectorAll('.device-type-badge').forEach(badge => {
             badge.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent event bubbling
                 // Remove previous selection
                 container.querySelectorAll('.device-type-badge').forEach(b => {
                     b.style.background = '#f0f0f0';
@@ -3333,6 +3334,18 @@ class RS485Adjuster {
                 badge.style.borderColor = '#007bff';
                 badge.style.color = '#fff';
             });
+        });
+        
+        // Add click handler to container to clear selection when clicking on empty space
+        container.addEventListener('click', (e) => {
+            if (e.target === container) {
+                // Clear all selections when clicking on empty space
+                container.querySelectorAll('.device-type-badge').forEach(b => {
+                    b.style.background = '#f0f0f0';
+                    b.style.borderColor = '#ccc';
+                    b.style.color = '#000';
+                });
+            }
         });
     }
 
