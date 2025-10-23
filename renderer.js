@@ -371,6 +371,7 @@ class RS485Adjuster {
         this.mokWriteConfigBtn = document.getElementById('mok-write-config');
         this.mokClearConfigBtn = document.getElementById('mok-clear-config');
         this.mokDeviceListBtn = document.getElementById('mok-device-list');
+        this.mokGenerateDeviceListBtn = document.getElementById('mok-generate-device-list');
         
         // Find the left scan block (first mok-scan-block)
         const scanBlocks = document.querySelectorAll('.mok-scan-block');
@@ -2259,6 +2260,12 @@ class RS485Adjuster {
             this.mokDeviceListBtn._eventBound = true;
         }
 
+        // Generate device list button
+        if (this.mokGenerateDeviceListBtn && !this.mokGenerateDeviceListBtn._eventBound) {
+            this.mokGenerateDeviceListBtn.addEventListener('click', () => this.showGenerateDeviceListWindow());
+            this.mokGenerateDeviceListBtn._eventBound = true;
+        }
+
         // Click outside scan block to clear selection
         if (!this.mokOutsideClickBound) {
             document.addEventListener('click', (e) => this.handleMokOutsideClick(e));
@@ -2284,25 +2291,58 @@ class RS485Adjuster {
         // Generate device type options
         const deviceTypes = this.generateDeviceTypeOptions();
         
+        // Check if project devices exist
+        if (deviceTypes.length === 0) {
+            const emptyModal = document.createElement('div');
+            emptyModal.className = 'modal';
+            emptyModal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>Нет устройств в проекте</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Сначала создайте список устройств проекта, используя кнопку "Создать список устройств проекта".</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="close-empty-modal" class="btn btn-primary">Понятно</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(emptyModal);
+            emptyModal.style.display = 'flex';
+            
+            const closeEmptyModal = () => {
+                document.body.removeChild(emptyModal);
+            };
+            
+            emptyModal.querySelector('.modal-close').addEventListener('click', closeEmptyModal);
+            emptyModal.querySelector('#close-empty-modal').addEventListener('click', closeEmptyModal);
+            emptyModal.addEventListener('click', (e) => {
+                if (e.target === emptyModal) closeEmptyModal();
+            });
+            return;
+        }
+        
         const modalContent = `
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h3>Выбор типа устройства для адреса ${address}</h3>
+                    <h3>Выбор устройства проекта для адреса ${address}</h3>
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="device-type-select">Тип устройства:</label>
+                        <label for="device-type-select">Устройство проекта:</label>
                         <select id="device-type-select" class="form-input" style="width: 100%;">
-                            <option value="">Выберите тип устройства</option>
+                            <option value="">Выберите устройство проекта</option>
                             ${deviceTypes.map(type => `<option value="${type}" ${this.getCurrentDeviceType(address) === type ? 'selected' : ''}>${type}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group" style="margin-top: 1rem;">
                         <button id="remove-device-type" class="btn btn-secondary" style="margin-right: 1rem;">
-                            <i class="fas fa-times"></i> Убрать тип устройства
+                            <i class="fas fa-times"></i> Убрать устройство проекта
                         </button>
-                        <small class="text-muted">Оставьте пустым, чтобы убрать назначенный тип</small>
+                        <small class="text-muted">Оставьте пустым, чтобы убрать назначенное устройство</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -2364,25 +2404,16 @@ class RS485Adjuster {
     }
 
     generateDeviceTypeOptions() {
-        const types = [
-            'АМ1',
-            // AM8 variants
-            'АМ8/1', 'АМ8/2', 'АМ8/3', 'АМ8/4', 'АМ8/5', 'АМ8/6', 'АМ8/7', 'АМ8/8',
-            // PM4 variants
-            'РМ4/1', 'РМ4/2', 'РМ4/3', 'РМ4/4',
-            // KL variants
-            'КЛ1', 'КЛ2', 'КЛ3', 'КЛ4', 'КЛ5', 'КЛ6', 'КЛ7', 'КЛ8', 'КЛ9', 'КЛ10',
-            'КЛ11', 'КЛ12', 'КЛ13', 'КЛ14', 'КЛ15', 'КЛ16', 'КЛ17', 'КЛ18', 'КЛ19', 'КЛ20',
-            'КЛ21', 'КЛ22', 'КЛ23', 'КЛ24', 'КЛ25', 'КЛ26', 'КЛ27', 'КЛ28', 'КЛ29', 'КЛ30',
-            'КЛ31', 'КЛ32', 'КЛ33', 'КЛ34', 'КЛ35', 'КЛ36', 'КЛ37', 'КЛ38', 'КЛ39', 'КЛ40',
-            'КЛ41', 'КЛ42', 'КЛ43', 'КЛ44', 'КЛ45', 'КЛ46', 'КЛ47', 'КЛ48', 'КЛ49', 'КЛ50',
-            // Sensor variants (СГ с шагом 0.5)
-            'СГ0.5', 'СГ1', 'СГ1.5', 'СГ2', 'СГ2.5', 'СГ3', 'СГ3.5', 'СГ4', 'СГ4.5', 
-            'СГ5', 'СГ5.5', 'СГ6',
-            // Fire sensor
-            'Пожарный датчик'
-        ];
-        return types;
+        // Get project devices (assigned devices)
+        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned) : [];
+        
+        // If no project devices, return empty array
+        if (projectDevices.length === 0) {
+            return [];
+        }
+        
+        // Return project device names for selection
+        return projectDevices.map(device => device.name);
     }
 
     getCurrentDeviceType(address) {
@@ -3248,6 +3279,22 @@ class RS485Adjuster {
             .device-type-badge:hover {
                 background-color: #e9ecef !important;
             }
+            .device-type-item {
+                transition: all 0.2s ease !important;
+            }
+            .device-type-item:hover {
+                background-color: #e9ecef !important;
+            }
+            .device-type-item.selected {
+                background-color: #28a745 !important;
+                color: white !important;
+                border-color: #1e7e34 !important;
+                box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25) !important;
+            }
+            #project-devices-list .device-item.selected {
+                background-color: #dc3545 !important;
+                color: white !important;
+            }
         `;
         document.head.appendChild(style);
         
@@ -3535,6 +3582,325 @@ class RS485Adjuster {
         } else {
             this.showToast('warning', 'Выберите устройство для удаления');
         }
+    }
+
+    showGenerateDeviceListWindow() {
+        console.log('showGenerateDeviceListWindow called');
+        
+        // Initialize project devices array if not exists
+        if (!this.mokProjectDevices) {
+            this.mokProjectDevices = [];
+        }
+        
+        // Create modal for device list generation
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 1000px; max-height: 700px;">
+                <div class="modal-header">
+                    <h3>Создание списка устройств проекта</h3>
+                    <span class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body" style="display: flex; gap: 1rem; height: 500px;">
+                    <!-- Left panel: System device types -->
+                    <div style="flex: 1; display: flex; flex-direction: column;">
+                        <h4 style="margin-bottom: 1rem; text-align: center;">Типы устройств в системе</h4>
+                        <div id="system-device-types-list" style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; overflow-y: auto;">
+                            <!-- System device types will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Center: Transfer buttons -->
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 1rem; padding: 0 1rem;">
+                        <button id="add-to-project" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button id="remove-from-project" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Right panel: Project devices -->
+                    <div style="flex: 1; display: flex; flex-direction: column;">
+                        <h4 style="margin-bottom: 1rem; text-align: center;">Устройства проекта</h4>
+                        <div id="project-devices-list" style="flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; overflow-y: auto;">
+                            <!-- Project devices will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button id="clear-project-devices" class="btn btn-warning">
+                        <i class="fas fa-eraser"></i> Очистить проект
+                    </button>
+                    <button id="cancel-generate-device-list" class="btn btn-secondary">Отмена</button>
+                    <button id="save-project-devices" class="btn btn-success">
+                        <i class="fas fa-save"></i> Сохранить проект
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Populate both lists
+        this.populateSystemDeviceTypesList(modal);
+        this.populateProjectDevicesList(modal);
+        this.bindGenerateDeviceListEvents(modal);
+        
+        // Close modal handlers
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    populateSystemDeviceTypesList(modal) {
+        const container = modal.querySelector('#system-device-types-list');
+        
+        // Get device types from the same list used in device management
+        const deviceTypes = [
+            'АМ1',
+            'АМ8',
+            'РМ4',
+            'КЛ',
+            'Пожарный датчик',
+            'Датчик ДИА-СГ-0.5', 'Датчик ДИА-СГ-1', 'Датчик ДИА-СГ-1.5', 'Датчик ДИА-СГ-2', 'Датчик ДИА-СГ-2.5', 'Датчик ДИА-СГ-3', 'Датчик ДИА-СГ-3.5', 'Датчик ДИА-СГ-4', 'Датчик ДИА-СГ-4.5', 'Датчик ДИА-СГ-5', 'Датчик ДИА-СГ-5.5', 'Датчик ДИА-СГ-6',
+            'Датчик ДИАС-СГ-0.5', 'Датчик ДИАС-СГ-1', 'Датчик ДИАС-СГ-1.5', 'Датчик ДИАС-СГ-2', 'Датчик ДИАС-СГ-2.5', 'Датчик ДИАС-СГ-3', 'Датчик ДИАС-СГ-3.5', 'Датчик ДИАС-СГ-4', 'Датчик ДИАС-СГ-4.5', 'Датчик ДИАС-СГ-5', 'Датчик ДИАС-СГ-5.5', 'Датчик ДИАС-СГ-6'
+        ];
+        
+        if (deviceTypes.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет типов устройств в системе</p>';
+            return;
+        }
+        
+        const deviceTypesHTML = deviceTypes.map((type, index) => `
+            <div class="device-type-item" data-device-type="${type}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; background-color: #f8f9fa;">
+                ${index + 1}. <strong>${type}</strong>
+            </div>
+        `).join('');
+        
+        container.innerHTML = deviceTypesHTML;
+        
+        // Add click handlers for device type selection
+        container.querySelectorAll('.device-type-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Remove previous selection
+                container.querySelectorAll('.device-type-item').forEach(i => {
+                    i.classList.remove('selected');
+                    i.style.backgroundColor = '#f8f9fa';
+                    i.style.color = '#000';
+                    i.style.borderColor = '#ddd';
+                    i.style.boxShadow = 'none';
+                });
+                // Add selection to clicked item
+                item.classList.add('selected');
+                item.style.backgroundColor = '#28a745';
+                item.style.color = 'white';
+                item.style.borderColor = '#1e7e34';
+                item.style.boxShadow = '0 0 0 2px rgba(40, 167, 69, 0.25)';
+                console.log('Selected device type:', item.dataset.deviceType);
+            });
+        });
+    }
+
+    populateProjectDevicesList(modal) {
+        const container = modal.querySelector('#project-devices-list');
+        
+        // Get project devices (filtered from system devices)
+        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned) : [];
+        
+        if (projectDevices.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет устройств в проекте</p>';
+            return;
+        }
+        
+        // Group devices by type for better organization
+        const groupedDevices = {};
+        projectDevices.forEach(device => {
+            if (!groupedDevices[device.type]) {
+                groupedDevices[device.type] = [];
+            }
+            groupedDevices[device.type].push(device);
+        });
+        
+        // Sort devices within each type by number
+        Object.keys(groupedDevices).forEach(type => {
+            groupedDevices[type].sort((a, b) => a.number - b.number);
+        });
+        
+        // Generate HTML with grouped display
+        let deviceListHTML = '';
+        let globalIndex = 1;
+        
+        Object.keys(groupedDevices).sort().forEach(type => {
+            const devices = groupedDevices[type];
+            deviceListHTML += `<div style="margin-bottom: 1rem;">
+                <div style="font-weight: bold; color: #666; margin-bottom: 0.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.25rem;">${type}:</div>
+            `;
+            
+            devices.forEach(device => {
+                deviceListHTML += `
+                    <div class="device-item" data-device-id="${device.name}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; margin-left: 1rem;">
+                        ${globalIndex}. <strong>${device.name}</strong>
+                    </div>
+                `;
+                globalIndex++;
+            });
+            
+            deviceListHTML += '</div>';
+        });
+        
+        container.innerHTML = deviceListHTML;
+        
+        // Add click handlers for device selection
+        container.querySelectorAll('.device-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Remove previous selection
+                container.querySelectorAll('.device-item').forEach(i => i.classList.remove('selected'));
+                // Add selection to clicked item
+                item.classList.add('selected');
+            });
+        });
+    }
+
+    bindGenerateDeviceListEvents(modal) {
+        // Add to project button
+        const addToProjectBtn = modal.querySelector('#add-to-project');
+        addToProjectBtn.addEventListener('click', () => {
+            const selectedDeviceType = modal.querySelector('#system-device-types-list .device-type-item.selected');
+            if (selectedDeviceType) {
+                const deviceType = selectedDeviceType.dataset.deviceType;
+                this.addDeviceTypeToProject(deviceType);
+                this.populateSystemDeviceTypesList(modal);
+                this.populateProjectDevicesList(modal);
+            } else {
+                this.showToast('warning', 'Выберите тип устройства для добавления в проект');
+            }
+        });
+        
+        // Remove from project button
+        const removeFromProjectBtn = modal.querySelector('#remove-from-project');
+        removeFromProjectBtn.addEventListener('click', () => {
+            const selectedDevice = modal.querySelector('#project-devices-list .device-item.selected');
+            if (selectedDevice) {
+                const deviceName = selectedDevice.dataset.deviceId;
+                this.removeDeviceFromProject(deviceName);
+                this.populateSystemDeviceTypesList(modal);
+                this.populateProjectDevicesList(modal);
+            } else {
+                this.showToast('warning', 'Выберите устройство для удаления из проекта');
+            }
+        });
+        
+        // Clear project button
+        const clearProjectBtn = modal.querySelector('#clear-project-devices');
+        clearProjectBtn.addEventListener('click', () => {
+            if (confirm('Вы уверены, что хотите очистить все устройства проекта?')) {
+                this.clearProjectDevices();
+                this.populateSystemDeviceTypesList(modal);
+                this.populateProjectDevicesList(modal);
+                this.showToast('success', 'Проект очищен');
+            }
+        });
+        
+        // Save project button
+        const saveProjectBtn = modal.querySelector('#save-project-devices');
+        saveProjectBtn.addEventListener('click', () => {
+            this.saveProjectDevices();
+            this.showToast('success', 'Проект сохранен');
+        });
+        
+        // Cancel button
+        const cancelBtn = modal.querySelector('#cancel-generate-device-list');
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+    }
+
+    addDeviceTypeToProject(deviceType) {
+        if (!this.mokProjectDevices) {
+            this.mokProjectDevices = [];
+        }
+        
+        // Count existing devices of this type in project
+        const existingDevicesOfType = this.mokProjectDevices.filter(d => d.type === deviceType && d.assigned);
+        const nextNumber = existingDevicesOfType.length + 1;
+        
+        // Check if we've reached the limit of 127 devices per type
+        if (nextNumber > 127) {
+            this.showToast('error', 'Достигнут лимит в 127 устройств данного типа');
+            return;
+        }
+        
+        // Add new device with the selected type and proper numbering
+        const newDevice = {
+            name: `${deviceType} №${nextNumber}`,
+            type: deviceType,
+            number: nextNumber,
+            assigned: true,
+            address: null
+        };
+        
+        this.mokProjectDevices.push(newDevice);
+        this.saveMokConfigAuto();
+        this.showToast('success', `${deviceType} №${nextNumber} добавлен в проект`);
+    }
+
+    addDeviceToProject(deviceName) {
+        if (this.mokProjectDevices) {
+            const device = this.mokProjectDevices.find(d => d.name === deviceName);
+            if (device) {
+                device.assigned = true;
+                this.saveMokConfigAuto();
+            }
+        }
+    }
+
+    removeDeviceFromProject(deviceName) {
+        if (this.mokProjectDevices) {
+            const device = this.mokProjectDevices.find(d => d.name === deviceName);
+            if (device) {
+                const deviceType = device.type;
+                const deviceNumber = device.number;
+                
+                // Remove the device
+                device.assigned = false;
+                
+                // Renumber remaining devices of the same type
+                const remainingDevicesOfType = this.mokProjectDevices.filter(d => 
+                    d.type === deviceType && d.assigned && d.number > deviceNumber
+                );
+                
+                remainingDevicesOfType.forEach(remainingDevice => {
+                    remainingDevice.number = remainingDevice.number - 1;
+                    remainingDevice.name = `${deviceType} №${remainingDevice.number}`;
+                });
+                
+                this.saveMokConfigAuto();
+                this.showToast('success', `${deviceName} удален из проекта`);
+            }
+        }
+    }
+
+    clearProjectDevices() {
+        if (this.mokProjectDevices) {
+            this.mokProjectDevices.forEach(device => {
+                device.assigned = false;
+            });
+            this.saveMokConfigAuto();
+        }
+    }
+
+    saveProjectDevices() {
+        // Project devices are already saved in mokProjectDevices with assigned flag
+        // This function can be extended for additional project-specific saving
+        console.log('Project devices saved');
     }
 
     async writeMokConfig() {
