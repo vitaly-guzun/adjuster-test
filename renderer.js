@@ -370,6 +370,7 @@ class RS485Adjuster {
         this.mokDeleteSectionBtn = document.getElementById('mok-delete-section');
         this.mokWriteConfigBtn = document.getElementById('mok-write-config');
         this.mokClearConfigBtn = document.getElementById('mok-clear-config');
+        this.mokDeviceListBtn = document.getElementById('mok-device-list');
         
         // Find the left scan block (first mok-scan-block)
         const scanBlocks = document.querySelectorAll('.mok-scan-block');
@@ -2252,6 +2253,12 @@ class RS485Adjuster {
             this.mokClearConfigBtn._eventBound = true;
         }
 
+        // Device list button
+        if (this.mokDeviceListBtn && !this.mokDeviceListBtn._eventBound) {
+            this.mokDeviceListBtn.addEventListener('click', () => this.showDeviceListWindow());
+            this.mokDeviceListBtn._eventBound = true;
+        }
+
         // Click outside scan block to clear selection
         if (!this.mokOutsideClickBound) {
             document.addEventListener('click', (e) => this.handleMokOutsideClick(e));
@@ -3182,6 +3189,338 @@ class RS485Adjuster {
                 this.mokClearConfigBtn.disabled = false;
                 this.mokClearConfigBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Удалить дерево';
             }
+        }
+    }
+
+    showDeviceListWindow() {
+        console.log('showDeviceListWindow called');
+        
+        // Create modal for device management
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px; max-height: 600px;">
+                <div class="modal-header">
+                    <h3>Управление списком устройств системы</h3>
+                    <span class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="device-list-controls" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                        <button id="add-device-btn" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Добавить устройство
+                        </button>
+                        <button id="delete-selected-device-btn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
+                    
+                    <div id="device-types-section">
+                        <h6 style="font-size: 14px; margin-bottom: 0.5rem;">Типы устройств в системе:</h6>
+                        <div id="device-types-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                            <!-- Device types will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div id="device-list-container">
+                        <!-- Device list will be populated here -->
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add CSS styles for device selection
+        const style = document.createElement('style');
+        style.textContent = `
+            .device-item.selected {
+                background-color: #007bff !important;
+                color: white !important;
+            }
+            .device-item:hover {
+                background-color: #f8f9fa !important;
+            }
+            .device-type-badge.selected {
+                background-color: #007bff !important;
+                border-color: #007bff !important;
+                color: white !important;
+            }
+            .device-type-badge:hover {
+                background-color: #e9ecef !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize device list
+        this.mokProjectDevices = this.mokProjectDevices || [];
+        this.populateDeviceList(modal);
+        this.populateDeviceTypes(modal);
+        this.bindDeviceListEvents(modal);
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Close modal handlers
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    populateDeviceList(modal) {
+        const container = modal.querySelector('#device-list-container');
+        
+        if (!this.mokProjectDevices || this.mokProjectDevices.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic;">Нет устройств в системе</p>';
+            return;
+        }
+        
+        const deviceListHTML = this.mokProjectDevices.map((device, index) => `
+            <div class="device-item" data-index="${index}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">
+                <strong>${device.name}</strong> (№${device.number}) - ${device.type}
+            </div>
+        `).join('');
+        
+        container.innerHTML = deviceListHTML;
+        
+        // Add click handlers for device selection
+        container.querySelectorAll('.device-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Remove previous selection
+                container.querySelectorAll('.device-item').forEach(i => i.classList.remove('selected'));
+                // Add selection to clicked item
+                item.classList.add('selected');
+            });
+        });
+    }
+
+    populateDeviceTypes(modal) {
+        const container = modal.querySelector('#device-types-list');
+        
+        const deviceTypes = [
+            'АМ1',
+            'АМ8',
+            'РМ4',
+            'КЛ',
+            'Пожарный датчик',
+            'Датчик ДИА-СГ-0.5', 'Датчик ДИА-СГ-1', 'Датчик ДИА-СГ-1.5', 'Датчик ДИА-СГ-2', 'Датчик ДИА-СГ-2.5', 'Датчик ДИА-СГ-3', 'Датчик ДИА-СГ-3.5', 'Датчик ДИА-СГ-4', 'Датчик ДИА-СГ-4.5', 'Датчик ДИА-СГ-5', 'Датчик ДИА-СГ-5.5', 'Датчик ДИА-СГ-6',
+            'Датчик ДИАС-СГ-0.5', 'Датчик ДИАС-СГ-1', 'Датчик ДИАС-СГ-1.5', 'Датчик ДИАС-СГ-2', 'Датчик ДИАС-СГ-2.5', 'Датчик ДИАС-СГ-3', 'Датчик ДИАС-СГ-3.5', 'Датчик ДИАС-СГ-4', 'Датчик ДИАС-СГ-4.5', 'Датчик ДИАС-СГ-5', 'Датчик ДИАС-СГ-5.5', 'Датчик ДИАС-СГ-6'
+        ];
+        
+        const deviceTypesHTML = deviceTypes.map(type => `
+            <span class="device-type-badge" data-type="${type}" style="padding: 0.25rem 0.5rem; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; user-select: none; font-size: 0.9rem;">
+                ${type}
+            </span>
+        `).join('');
+        
+        container.innerHTML = deviceTypesHTML;
+        
+        // Add click handlers for device type selection
+        container.querySelectorAll('.device-type-badge').forEach(badge => {
+            badge.addEventListener('click', (e) => {
+                // Remove previous selection
+                container.querySelectorAll('.device-type-badge').forEach(b => {
+                    b.style.background = '#f0f0f0';
+                    b.style.borderColor = '#ccc';
+                    b.style.color = '#000';
+                });
+                // Add selection to clicked badge
+                badge.style.background = '#007bff';
+                badge.style.borderColor = '#007bff';
+                badge.style.color = '#fff';
+            });
+        });
+    }
+
+    bindDeviceListEvents(modal) {
+        console.log('bindDeviceListEvents called');
+        
+        // Add device button
+        const addDeviceBtn = modal.querySelector('#add-device-btn');
+        if (addDeviceBtn) {
+            addDeviceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Add device button clicked');
+                this.showAddDeviceDialog(modal);
+            });
+        }
+        
+        // Delete device button
+        const deleteDeviceBtn = modal.querySelector('#delete-selected-device-btn');
+        if (deleteDeviceBtn) {
+            deleteDeviceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete device button clicked');
+                this.deleteSelectedDevice(modal);
+            });
+        }
+    }
+
+    showAddDeviceDialog(parentModal) {
+        console.log('showAddDeviceDialog called');
+        
+        // Set flag to prevent multiple dialogs
+        if (this.addDeviceDialogOpen) {
+            return;
+        }
+        this.addDeviceDialogOpen = true;
+        
+        // Create custom input dialog
+        const inputModal = document.createElement('div');
+        inputModal.className = 'modal';
+        inputModal.style.zIndex = '10001'; // Higher than parent modal
+        inputModal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>Добавить устройство</h3>
+                    <span class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="device-name-input" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Наименование устройства:</label>
+                        <input type="text" id="device-name-input" placeholder="Введите наименование устройства" 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="device-number-input" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Номер устройства:</label>
+                        <input type="number" id="device-number-input" value="1" min="1" 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button id="cancel-add-device" class="btn btn-secondary">Отмена</button>
+                    <button id="confirm-add-device" class="btn btn-success">Добавить</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(inputModal);
+        inputModal.style.display = 'flex';
+        
+        // Focus on name input
+        const nameInput = inputModal.querySelector('#device-name-input');
+        const numberInput = inputModal.querySelector('#device-number-input');
+        
+        setTimeout(() => {
+            nameInput.focus();
+            nameInput.select();
+        }, 100);
+        
+        // Close modal function
+        const closeInputModal = () => {
+            document.body.removeChild(inputModal);
+            this.addDeviceDialogOpen = false;
+        };
+        
+        // Event handlers
+        const cancelBtn = inputModal.querySelector('#cancel-add-device');
+        const confirmBtn = inputModal.querySelector('#confirm-add-device');
+        const closeBtn = inputModal.querySelector('.modal-close');
+        
+        const handleCancel = () => {
+            closeInputModal();
+        };
+        
+        const handleConfirm = () => {
+            const deviceName = nameInput.value.trim();
+            const numberStr = numberInput.value;
+            
+            if (!deviceName) {
+                this.showToast('error', 'Введите наименование устройства');
+                nameInput.focus();
+                return;
+            }
+            
+            if (!numberStr || isNaN(numberStr) || parseInt(numberStr) < 1) {
+                this.showToast('error', 'Некорректный номер устройства');
+                numberInput.focus();
+                return;
+            }
+            
+            const number = parseInt(numberStr);
+            
+            // Ensure mokProjectDevices array exists
+            if (!this.mokProjectDevices) {
+                this.mokProjectDevices = [];
+            }
+            
+            // Check if device already exists
+            if (this.mokProjectDevices.some(device => device.name === deviceName)) {
+                this.showToast('error', 'Устройство с таким именем уже существует');
+                nameInput.focus();
+                return;
+            }
+            
+            // Add device
+            this.mokProjectDevices.push({
+                name: deviceName,
+                type: 'Пользовательское',
+                number: number,
+                assigned: false,
+                address: null
+            });
+            
+            this.populateDeviceList(parentModal);
+            this.saveMokConfigAuto();
+            this.showToast('success', `Устройство ${deviceName} добавлено`);
+            closeInputModal();
+        };
+        
+        // Bind events
+        cancelBtn.addEventListener('click', handleCancel);
+        confirmBtn.addEventListener('click', handleConfirm);
+        closeBtn.addEventListener('click', handleCancel);
+        
+        // Close on outside click
+        inputModal.addEventListener('click', (e) => {
+            if (e.target === inputModal) {
+                handleCancel();
+            }
+        });
+        
+        // Handle Enter key
+        const handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                handleConfirm();
+            } else if (e.key === 'Escape') {
+                handleCancel();
+            }
+        };
+        
+        nameInput.addEventListener('keydown', handleKeyPress);
+        numberInput.addEventListener('keydown', handleKeyPress);
+    }
+
+    deleteSelectedDevice(modal) {
+        console.log('deleteSelectedDevice called');
+        
+        // Check if a device type badge is selected
+        const selectedDeviceType = modal.querySelector('.device-type-badge[style*="background: rgb(0, 123, 255)"]');
+        if (selectedDeviceType) {
+            // Remove the selected device type badge
+            selectedDeviceType.remove();
+            return;
+        }
+        
+        // Check if a device item is selected
+        const selectedDevice = modal.querySelector('.device-item.selected');
+        if (selectedDevice) {
+            const index = parseInt(selectedDevice.dataset.index);
+            if (index >= 0 && index < this.mokProjectDevices.length) {
+                const device = this.mokProjectDevices[index];
+                this.mokProjectDevices.splice(index, 1);
+                this.populateDeviceList(modal);
+                this.saveMokConfigAuto();
+                this.showToast('success', `Устройство ${device.name} удалено`);
+            }
+        } else {
+            this.showToast('warning', 'Выберите устройство для удаления');
         }
     }
 
