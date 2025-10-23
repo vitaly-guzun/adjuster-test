@@ -412,6 +412,14 @@ class RS485Adjuster {
         if (this.mokSelectedAddress === undefined) {
             this.mokSelectedAddress = null;
         }
+        
+        // Initialize device arrays
+        if (!this.mokProjectDevices) {
+            this.mokProjectDevices = [];
+        }
+        if (!this.mokSystemDevices) {
+            this.mokSystemDevices = [];
+        }
         if (this.mokSelectedSection === undefined) {
             this.mokSelectedSection = null;
         }
@@ -3116,6 +3124,8 @@ class RS485Adjuster {
                 sections: this.mokSections || [],
                 scanResults: this.mokScanResults || [],
                 deviceInfo: this.mokDeviceInfo || [],
+                projectDevices: this.mokProjectDevices || [],
+                systemDevices: this.mokSystemDevices || [],
                 timestamp: new Date().toISOString()
             };
 
@@ -3160,6 +3170,25 @@ class RS485Adjuster {
                             this.mokDeviceInfo[index] = deviceInfo;
                         }
                     });
+                }
+                
+                // Restore project devices
+                if (result.data.projectDevices && Array.isArray(result.data.projectDevices)) {
+                    this.mokProjectDevices = result.data.projectDevices;
+                    console.log('Loaded project devices:', this.mokProjectDevices);
+                    
+                    // Ensure assigned flag is properly set for project devices
+                    this.mokProjectDevices.forEach(device => {
+                        if (device.assigned === undefined) {
+                            device.assigned = false; // Default to system device
+                        }
+                    });
+                }
+                
+                // Restore system devices
+                if (result.data.systemDevices && Array.isArray(result.data.systemDevices)) {
+                    this.mokSystemDevices = result.data.systemDevices;
+                    console.log('Loaded system devices:', this.mokSystemDevices);
                 }
                 
                 // Update UI only if we're on MOK tab
@@ -3300,6 +3329,7 @@ class RS485Adjuster {
         
         // Initialize device list
         this.mokProjectDevices = this.mokProjectDevices || [];
+        this.mokSystemDevices = this.mokSystemDevices || [];
         this.populateDeviceList(modal);
         this.populateDeviceTypes(modal);
         this.bindDeviceListEvents(modal);
@@ -3321,12 +3351,21 @@ class RS485Adjuster {
     populateDeviceList(modal) {
         const container = modal.querySelector('#device-list-container');
         
-        if (!this.mokProjectDevices || this.mokProjectDevices.length === 0) {
-            container.innerHTML = '';
+        console.log('populateDeviceList called');
+        console.log('mokSystemDevices:', this.mokSystemDevices);
+        console.log('mokProjectDevices:', this.mokProjectDevices);
+        
+        // Show only system devices (not assigned to project)
+        const systemDevices = this.mokSystemDevices || [];
+        
+        console.log('systemDevices (system only):', systemDevices);
+        
+        if (systemDevices.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет доступных устройств в системе</p>';
             return;
         }
         
-        const deviceListHTML = this.mokProjectDevices.map((device, index) => `
+        const deviceListHTML = systemDevices.map((device, index) => `
             <div class="device-item" data-index="${index}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;">
                 ${index + 1}. <strong>${device.name}</strong> - ${device.type}
             </div>
@@ -3348,17 +3387,24 @@ class RS485Adjuster {
     populateDeviceTypes(modal) {
         const container = modal.querySelector('#device-types-list');
         
-        const deviceTypes = [
+        const allDeviceTypes = [
             'АМ1',
             'АМ8',
             'РМ4',
             'КЛ',
             'Пожарный датчик',
-            'Датчик ДИА-СГ-0.5', 'Датчик ДИА-СГ-1', 'Датчик ДИА-СГ-1.5', 'Датчик ДИА-СГ-2', 'Датчик ДИА-СГ-2.5', 'Датчик ДИА-СГ-3', 'Датчик ДИА-СГ-3.5', 'Датчик ДИА-СГ-4', 'Датчик ДИА-СГ-4.5', 'Датчик ДИА-СГ-5', 'Датчик ДИА-СГ-5.5', 'Датчик ДИА-СГ-6',
-            'Датчик ДИАС-СГ-0.5', 'Датчик ДИАС-СГ-1', 'Датчик ДИАС-СГ-1.5', 'Датчик ДИАС-СГ-2', 'Датчик ДИАС-СГ-2.5', 'Датчик ДИАС-СГ-3', 'Датчик ДИАС-СГ-3.5', 'Датчик ДИАС-СГ-4', 'Датчик ДИАС-СГ-4.5', 'Датчик ДИАС-СГ-5', 'Датчик ДИАС-СГ-5.5', 'Датчик ДИАС-СГ-6'
+            'ДИА-СГ-0.5', 'ДИА-СГ-1', 'ДИА-СГ-1.5', 'ДИА-СГ-2', 'ДИА-СГ-2.5', 'ДИА-СГ-3', 'ДИА-СГ-3.5', 'ДИА-СГ-4', 'ДИА-СГ-4.5', 'ДИА-СГ-5', 'ДИА-СГ-5.5', 'ДИА-СГ-6',
+            'ДИАС-СГ-0.5', 'ДИАС-СГ-1', 'ДИАС-СГ-1.5', 'ДИАС-СГ-2', 'ДИАС-СГ-2.5', 'ДИАС-СГ-3', 'ДИАС-СГ-3.5', 'ДИАС-СГ-4', 'ДИАС-СГ-4.5', 'ДИАС-СГ-5', 'ДИАС-СГ-5.5', 'ДИАС-СГ-6'
         ];
         
-        const deviceTypesHTML = deviceTypes.map(type => `
+        // Get project device types (assigned devices)
+        const projectDeviceTypes = this.mokProjectDevices ? 
+            this.mokProjectDevices.filter(device => device.assigned).map(device => device.type) : [];
+        
+        // Filter out device types that are already in project
+        const availableDeviceTypes = allDeviceTypes.filter(type => !projectDeviceTypes.includes(type));
+        
+        const deviceTypesHTML = availableDeviceTypes.map(type => `
             <span class="device-type-badge" data-type="${type}" style="padding: 0.25rem 0.5rem; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; transition: all 0.2s; user-select: none; font-size: 0.9rem;">
                 ${type}
             </span>
@@ -3505,20 +3551,20 @@ class RS485Adjuster {
             
             const number = parseInt(numberStr);
             
-            // Ensure mokProjectDevices array exists
-            if (!this.mokProjectDevices) {
-                this.mokProjectDevices = [];
+            // Ensure mokSystemDevices array exists
+            if (!this.mokSystemDevices) {
+                this.mokSystemDevices = [];
             }
             
             // Check if device already exists
-            if (this.mokProjectDevices.some(device => device.name === deviceName)) {
+            if (this.mokSystemDevices.some(device => device.name === deviceName)) {
                 this.showToast('error', 'Устройство с таким именем уже существует');
                 nameInput.focus();
                 return;
             }
             
-            // Add device
-            this.mokProjectDevices.push({
+            // Add device to system devices
+            this.mokSystemDevices.push({
                 name: deviceName,
                 type: 'Пользовательское',
                 number: number,
@@ -3572,9 +3618,9 @@ class RS485Adjuster {
         const selectedDevice = modal.querySelector('.device-item.selected');
         if (selectedDevice) {
             const index = parseInt(selectedDevice.dataset.index);
-            if (index >= 0 && index < this.mokProjectDevices.length) {
-                const device = this.mokProjectDevices[index];
-                this.mokProjectDevices.splice(index, 1);
+            if (index >= 0 && index < this.mokSystemDevices.length) {
+                const device = this.mokSystemDevices[index];
+                this.mokSystemDevices.splice(index, 1);
                 this.populateDeviceList(modal);
                 this.saveMokConfigAuto();
                 this.showToast('success', `Устройство ${device.name} удалено`);
@@ -3629,6 +3675,9 @@ class RS485Adjuster {
                     </div>
                 </div>
                 <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button id="import-project-devices" class="btn btn-info">
+                        <i class="fas fa-upload"></i> Импорт
+                    </button>
                     <button id="clear-project-devices" class="btn btn-warning">
                         <i class="fas fa-eraser"></i> Очистить проект
                     </button>
@@ -3662,23 +3711,30 @@ class RS485Adjuster {
     populateSystemDeviceTypesList(modal) {
         const container = modal.querySelector('#system-device-types-list');
         
-        // Get device types from the same list used in device management
-        const deviceTypes = [
+        // Get all device types
+        const allDeviceTypes = [
             'АМ1',
             'АМ8',
             'РМ4',
             'КЛ',
             'Пожарный датчик',
-            'Датчик ДИА-СГ-0.5', 'Датчик ДИА-СГ-1', 'Датчик ДИА-СГ-1.5', 'Датчик ДИА-СГ-2', 'Датчик ДИА-СГ-2.5', 'Датчик ДИА-СГ-3', 'Датчик ДИА-СГ-3.5', 'Датчик ДИА-СГ-4', 'Датчик ДИА-СГ-4.5', 'Датчик ДИА-СГ-5', 'Датчик ДИА-СГ-5.5', 'Датчик ДИА-СГ-6',
-            'Датчик ДИАС-СГ-0.5', 'Датчик ДИАС-СГ-1', 'Датчик ДИАС-СГ-1.5', 'Датчик ДИАС-СГ-2', 'Датчик ДИАС-СГ-2.5', 'Датчик ДИАС-СГ-3', 'Датчик ДИАС-СГ-3.5', 'Датчик ДИАС-СГ-4', 'Датчик ДИАС-СГ-4.5', 'Датчик ДИАС-СГ-5', 'Датчик ДИАС-СГ-5.5', 'Датчик ДИАС-СГ-6'
+            'ДИА-СГ-0.5', 'ДИА-СГ-1', 'ДИА-СГ-1.5', 'ДИА-СГ-2', 'ДИА-СГ-2.5', 'ДИА-СГ-3', 'ДИА-СГ-3.5', 'ДИА-СГ-4', 'ДИА-СГ-4.5', 'ДИА-СГ-5', 'ДИА-СГ-5.5', 'ДИА-СГ-6',
+            'ДИАС-СГ-0.5', 'ДИАС-СГ-1', 'ДИАС-СГ-1.5', 'ДИАС-СГ-2', 'ДИАС-СГ-2.5', 'ДИАС-СГ-3', 'ДИАС-СГ-3.5', 'ДИАС-СГ-4', 'ДИАС-СГ-4.5', 'ДИАС-СГ-5', 'ДИАС-СГ-5.5', 'ДИАС-СГ-6'
         ];
         
-        if (deviceTypes.length === 0) {
-            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет типов устройств в системе</p>';
+        // Get project device types (assigned devices)
+        const projectDeviceTypes = this.mokProjectDevices ? 
+            this.mokProjectDevices.filter(device => device.assigned).map(device => device.type) : [];
+        
+        // Filter out device types that are already in project
+        const availableDeviceTypes = allDeviceTypes.filter(type => !projectDeviceTypes.includes(type));
+        
+        if (availableDeviceTypes.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет доступных типов устройств</p>';
             return;
         }
         
-        const deviceTypesHTML = deviceTypes.map((type, index) => `
+        const deviceTypesHTML = availableDeviceTypes.map((type, index) => `
             <div class="device-type-item" data-device-type="${type}" style="padding: 0.5rem; border: 1px solid #ddd; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; background-color: #f8f9fa;">
                 ${index + 1}. <strong>${type}</strong>
             </div>
@@ -3712,8 +3768,13 @@ class RS485Adjuster {
     populateProjectDevicesList(modal) {
         const container = modal.querySelector('#project-devices-list');
         
-        // Get project devices (filtered from system devices)
-        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned) : [];
+        console.log('populateProjectDevicesList called');
+        console.log('mokProjectDevices:', this.mokProjectDevices);
+        
+        // Get project devices (all devices that are assigned to project)
+        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned === true) : [];
+        
+        console.log('projectDevices filtered:', projectDevices);
         
         if (projectDevices.length === 0) {
             container.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">Нет устройств в проекте</p>';
@@ -3809,11 +3870,16 @@ class RS485Adjuster {
             }
         });
         
+        // Import project button
+        const importProjectBtn = modal.querySelector('#import-project-devices');
+        importProjectBtn.addEventListener('click', () => {
+            this.showImportProjectDialog(modal);
+        });
+        
         // Save project button
         const saveProjectBtn = modal.querySelector('#save-project-devices');
         saveProjectBtn.addEventListener('click', () => {
-            this.saveProjectDevices();
-            this.showToast('success', 'Проект сохранен');
+            this.showSaveProjectDialog();
         });
         
         // Cancel button
@@ -3895,6 +3961,253 @@ class RS485Adjuster {
             });
             this.saveMokConfigAuto();
         }
+    }
+
+    showSaveProjectDialog() {
+        console.log('showSaveProjectDialog called');
+        
+        // Create save dialog
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Сохранить список типов устройств проекта</h3>
+                    <span class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-filename" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Имя файла:</label>
+                        <input type="text" id="project-filename" placeholder="Введите имя файла" 
+                               value="project-devices" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Устройства в проекте:</label>
+                        <div id="project-devices-preview" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; background: #f8f9fa;">
+                            <!-- Preview will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button id="cancel-save-project" class="btn btn-secondary">Отмена</button>
+                    <button id="confirm-save-project" class="btn btn-success">
+                        <i class="fas fa-save"></i> Сохранить
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Populate preview
+        this.populateProjectPreview(modal);
+        
+        // Focus on filename input
+        const filenameInput = modal.querySelector('#project-filename');
+        setTimeout(() => {
+            filenameInput.focus();
+            filenameInput.select();
+        }, 100);
+        
+        // Close modal handlers
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.querySelector('#cancel-save-project').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Save button handler
+        modal.querySelector('#confirm-save-project').addEventListener('click', () => {
+            const filename = filenameInput.value.trim();
+            if (!filename) {
+                this.showToast('error', 'Введите имя файла');
+                return;
+            }
+            
+            this.exportProjectDevices(filename);
+            closeModal();
+        });
+    }
+
+    showImportProjectDialog(parentModal) {
+        console.log('showImportProjectDialog called');
+        
+        // Create import dialog
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Импорт списка типов устройств проекта</h3>
+                    <span class="modal-close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-file-input" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Выберите файл:</label>
+                        <input type="file" id="project-file-input" accept=".json" 
+                               style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                    </div>
+                    <div id="import-preview" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; background: #f8f9fa; display: none;">
+                        <h6>Предварительный просмотр:</h6>
+                        <div id="import-devices-list"></div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button id="cancel-import-project" class="btn btn-secondary">Отмена</button>
+                    <button id="confirm-import-project" class="btn btn-success" disabled>
+                        <i class="fas fa-upload"></i> Импорт
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // File input handler
+        const fileInput = modal.querySelector('#project-file-input');
+        const importPreview = modal.querySelector('#import-preview');
+        const importDevicesList = modal.querySelector('#import-devices-list');
+        const confirmBtn = modal.querySelector('#confirm-import-project');
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.previewImportFile(file, importDevicesList, importPreview, confirmBtn);
+            }
+        });
+        
+        // Close modal handlers
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        modal.querySelector('.modal-close').addEventListener('click', closeModal);
+        modal.querySelector('#cancel-import-project').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Import button handler
+        confirmBtn.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                this.importProjectDevices(file, parentModal);
+                closeModal();
+            }
+        });
+    }
+
+    populateProjectPreview(modal) {
+        const container = modal.querySelector('#project-devices-preview');
+        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned) : [];
+        
+        if (projectDevices.length === 0) {
+            container.innerHTML = '<p style="color: #666; font-style: italic;">Нет устройств в проекте</p>';
+            return;
+        }
+        
+        const previewHTML = projectDevices.map(device => `
+            <div style="padding: 0.25rem; border-bottom: 1px solid #eee;">
+                <strong>${device.name}</strong> - ${device.type}
+            </div>
+        `).join('');
+        
+        container.innerHTML = previewHTML;
+    }
+
+    previewImportFile(file, container, preview, confirmBtn) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.devices && Array.isArray(data.devices)) {
+                    const previewHTML = data.devices.map(device => `
+                        <div style="padding: 0.25rem; border-bottom: 1px solid #eee;">
+                            <strong>${device.name}</strong> - ${device.type}
+                        </div>
+                    `).join('');
+                    
+                    container.innerHTML = previewHTML;
+                    preview.style.display = 'block';
+                    confirmBtn.disabled = false;
+                } else {
+                    this.showToast('error', 'Неверный формат файла');
+                }
+            } catch (error) {
+                this.showToast('error', 'Ошибка чтения файла');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    exportProjectDevices(filename) {
+        const projectDevices = this.mokProjectDevices ? this.mokProjectDevices.filter(device => device.assigned) : [];
+        
+        const exportData = {
+            devices: projectDevices,
+            timestamp: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `${filename}.json`;
+        link.click();
+        
+        this.showToast('success', `Список устройств проекта сохранен как ${filename}.json`);
+    }
+
+    importProjectDevices(file, parentModal) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.devices && Array.isArray(data.devices)) {
+                    // Clear existing project devices
+                    if (this.mokProjectDevices) {
+                        this.mokProjectDevices.forEach(device => {
+                            device.assigned = false;
+                        });
+                    }
+                    
+                    // Add imported devices
+                    data.devices.forEach(importedDevice => {
+                        if (!this.mokProjectDevices) {
+                            this.mokProjectDevices = [];
+                        }
+                        
+                        this.mokProjectDevices.push({
+                            name: importedDevice.name,
+                            type: importedDevice.type,
+                            number: importedDevice.number,
+                            assigned: true,
+                            address: null
+                        });
+                    });
+                    
+                    // Update UI
+                    this.populateSystemDeviceTypesList(parentModal);
+                    this.populateProjectDevicesList(parentModal);
+                    this.saveMokConfigAuto();
+                    
+                    this.showToast('success', `Импортировано ${data.devices.length} устройств проекта`);
+                } else {
+                    this.showToast('error', 'Неверный формат файла');
+                }
+            } catch (error) {
+                this.showToast('error', 'Ошибка импорта файла');
+            }
+        };
+        reader.readAsText(file);
     }
 
     saveProjectDevices() {
