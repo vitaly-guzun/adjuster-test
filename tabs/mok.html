@@ -1,0 +1,108 @@
+<!-- MOK Tab Template -->
+<div class="tab-panel" id="mok">
+    
+    <!-- RS485 Scan and System Tree Section -->
+    <div class="section-subheader">
+        <h4>Настраиваемые параметры</h4>
+    </div>
+    
+    <div class="mok-scan-container">
+        <!-- Left block: RS485 Address Scan Results -->
+        <div class="mok-scan-block">
+            <div class="mok-scan-header">
+                <div class="mok-header-left">
+                    <h4>План адресов системы</h4>
+                </div>
+            </div>
+            <div class="mok-scrollable-content">
+                <div class="mok-address-indicators" id="mokAddressIndicators">
+                    <!-- Address indicators will be generated here -->
+                </div>
+            </div>
+            <div class="mok-block-footer">
+                <button id="mok-add-addresses" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Добавить 10 адресов
+                </button>
+                <button id="mok-clear-assignments" class="btn btn-warning">
+                    <i class="fas fa-eraser"></i>
+                    Очистить назначения
+                </button>
+                <button id="mok-device-list" class="btn btn-info">
+                    <i class="fas fa-list"></i>
+                    Список устройств
+                </button>
+                <button id="mok-generate-device-list" class="btn btn-success">
+                    <i class="fas fa-magic"></i>
+                    Создать список устройств проекта
+                </button>
+            </div>
+        </div>
+        
+        <!-- Arrow controls between blocks -->
+        <div class="mok-arrow-controls">
+            <button id="mok-arrow-left" class="btn btn-arrow" disabled>
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <button id="mok-arrow-right" class="btn btn-arrow" disabled>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        
+        <!-- Right block: System Tree -->
+        <div class="mok-scan-block">
+            <div class="mok-scan-header">
+                <div class="mok-header-left">
+                    <h4>Дерево системы и сценарии</h4>
+                </div>
+            </div>
+            <div class="mok-header-controls">
+                <button id="mok-import-config" class="btn btn-info btn-small">
+                    <i class="fas fa-upload"></i>
+                    Импорт конфиг МОК
+                </button>
+                <button id="mok-export-config" class="btn btn-warning btn-small">
+                    <i class="fas fa-file-export"></i>
+                    Экспорт конфиг МОК
+                </button>
+                <button id="mok-create-section" class="btn btn-success btn-small">
+                    <i class="fas fa-plus"></i>
+                    Создать раздел
+                </button>
+                <button id="mok-delete-section" class="btn btn-danger btn-small">
+                    <i class="fas fa-trash"></i>
+                    Удалить раздел
+                </button>
+            </div>
+            <div class="mok-scrollable-content">
+                <div class="mok-address-tree" id="mokAddressTree">
+                    <div class="tree-placeholder">Сканируйте шину для отображения дерева системы</div>
+                </div>
+            </div>
+            <div class="mok-block-footer">
+                <button id="mok-write-config" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Сохранить дерево
+                </button>
+                <button id="mok-clear-config" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i>
+                    Удалить дерево
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MOK Scenarios Creation Section -->
+    <div class="section-subheader">
+        <h4>Создание сценариев МОК</h4>
+    </div>
+    
+    <div class="mok-scenarios-container">
+        <div class="mok-scenarios-block">
+            <!-- Scenarios content will be added here -->
+            <div class="scenarios-placeholder">
+                <p>Блок для создания сценариев МОК</p>
+            </div>
+        </div>
+    </div>
+</div>

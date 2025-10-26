@@ -1,0 +1,36 @@
+<!-- AM1 Tab Template -->
+<div class="tab-panel" id="am1">
+    <div class="panel-header">
+        <h3>Настройки AM1 модуля</h3>
+        <p>Одноканальный аналоговый модуль</p>
+    </div>
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="am1-sensitivity">Чувствительность</label>
+            <input type="number" id="am1-sensitivity" class="form-input" value="1.0" step="0.1" min="0.1" max="10.0">
+        </div>
+        <div class="param-card">
+            <label for="am1-range">Диапазон измерения</label>
+            <select id="am1-range" class="form-select">
+                <option value="0-10V">0-10V</option>
+                <option value="0-20mA">0-20mA</option>
+                <option value="4-20mA">4-20mA</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="am1-filter">Фильтр</label>
+            <select id="am1-filter" class="form-select">
+                <option value="none">Отключен</option>
+                <option value="low">Низкочастотный</option>
+                <option value="high">Высокочастотный</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="am1-calibration">Калибровка</label>
+            <button id="am1-calibrate" class="btn btn-secondary">
+                <i class="fas fa-cog"></i>
+                Калибровать
+            </button>
+        </div>
+    </div>
+</div>

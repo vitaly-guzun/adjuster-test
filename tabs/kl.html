@@ -1,0 +1,75 @@
+<!-- KL Tab Template -->
+<div class="tab-panel" id="kl">
+    <div class="panel-header">
+        <h3>Настройки КЛ модуля</h3>
+        <p>Конфигурация коммуникационного модуля</p>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="kl-protocol">Протокол</label>
+            <select id="kl-protocol" class="form-select">
+                <option value="modbus-rtu">Modbus RTU</option>
+                <option value="modbus-ascii">Modbus ASCII</option>
+                <option value="profinet">Profinet</option>
+                <option value="ethernet-ip">Ethernet/IP</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="kl-device-address">Адрес устройства</label>
+            <input type="number" id="kl-device-address" class="form-input" value="1" min="1" max="247">
+        </div>
+        <div class="param-card">
+            <label for="kl-baud-rate">Скорость передачи</label>
+            <select id="kl-baud-rate" class="form-select">
+                <option value="9600">9600</option>
+                <option value="19200">19200</option>
+                <option value="38400">38400</option>
+                <option value="57600">57600</option>
+                <option value="115200">115200</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="kl-parity">Четность</label>
+            <select id="kl-parity" class="form-select">
+                <option value="none">Нет</option>
+                <option value="even">Четная</option>
+                <option value="odd">Нечетная</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="kl-stop-bits">Стоп-биты</label>
+            <select id="kl-stop-bits" class="form-select">
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+        </div>
+        <div class="param-card">
+            <label for="kl-timeout">Таймаут (мс)</label>
+            <input type="number" id="kl-timeout" class="form-input" value="1000" min="100" max="10000">
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Сетевые настройки</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label for="kl-ip-address">IP адрес</label>
+            <input type="text" id="kl-ip-address" class="form-input" value="192.168.1.100" placeholder="192.168.1.100">
+        </div>
+        <div class="param-card">
+            <label for="kl-subnet-mask">Маска подсети</label>
+            <input type="text" id="kl-subnet-mask" class="form-input" value="255.255.255.0" placeholder="255.255.255.0">
+        </div>
+        <div class="param-card">
+            <label for="kl-gateway">Шлюз</label>
+            <input type="text" id="kl-gateway" class="form-input" value="192.168.1.1" placeholder="192.168.1.1">
+        </div>
+        <div class="param-card">
+            <label for="kl-port">Порт</label>
+            <input type="number" id="kl-port" class="form-input" value="502" min="1" max="65535">
+        </div>
+    </div>
+</div>

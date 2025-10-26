@@ -30,7 +30,7 @@ body {
 
 .header-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
@@ -53,34 +53,7 @@ body {
     background-clip: text;
 }
 
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #dc3545;
-    animation: pulse 2s infinite;
-}
-
-.status-indicator.connected {
-    background: #28a745;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
+/* Connection status styles removed - no longer needed */
 
 /* Section Styles */
 .connection-section,
@@ -246,6 +219,16 @@ body {
     box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
 }
 
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -360,7 +343,7 @@ body {
     padding: 2rem;
     border-bottom: 1px solid #e9ecef;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
@@ -386,7 +369,7 @@ body {
 }
 
 .buttons-container {
-    display: grid;
+    display: none; /* Hidden by default - only shown where needed */
     grid-template-rows: 1fr 1fr;
     gap: 1.5rem;
     align-items: center;
@@ -419,7 +402,9 @@ body {
 .parameters-controls {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 1.5rem;
+    width: 100%;
 }
 
 .address-control {
@@ -740,6 +725,7 @@ body {
     }
     
     .buttons-container {
+        display: none; /* Hidden by default - only shown where needed */
         grid-template-rows: auto auto;
         height: auto;
         gap: 1rem;
@@ -775,6 +761,70 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Tab Loading Styles */
+.tab-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #6c757d;
+}
+
+.loading-spinner .loading {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+    margin-bottom: 1rem;
+}
+
+.loading-spinner p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Tab Error Styles */
+.tab-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    color: #6c757d;
+    max-width: 400px;
+}
+
+.error-content i {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.error-content h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.error-content p {
+    margin-bottom: 0.5rem;
+}
+
+.error-details {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-bottom: 1.5rem !important;
 }
 
 /* AM8 Module Specific Styles */
@@ -908,6 +958,49 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* AM1 grouped elements with borders */
+.am1-group {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.am1-group.range-group {
+    border-color: #17a2b8;
+}
+
+.am1-group.write-group {
+    border-color: #28a745;
+}
+
+/* Show AM1 groups only when AM1 tab is active */
+body.am1-active .am1-group {
+    display: flex;
+}
+
+/* AM1 grid layout with grouped elements */
+body.am1-active .address-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 2rem !important;
+    width: 100% !important;
+    flex-wrap: wrap;
+}
+
+body.am1-active .am1-group {
+    flex: 1;
+    min-width: 390px;
+    max-width: 520px;
+    justify-content: center;
+}
+
 .address-field {
     display: flex;
     flex-direction: column;
@@ -936,7 +1029,7 @@ body {
 }
 
 .buttons-container {
-    display: flex;
+    display: none; /* Hidden by default - only shown where needed */
     gap: 1rem;
     justify-content: center;
     margin-top: 1rem;
@@ -1061,18 +1154,8 @@ body.am8-active .address-field.am8-only {
     display: flex;
 }
 
-/* Adjust grid layout for AM1 (single field) */
-body.am1-active .address-grid {
-    grid-template-columns: auto;
-    grid-template-rows: auto;
-    justify-content: center;
-}
 
-/* Keep 4x2 grid for AM8 */
-body.am8-active .address-grid {
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-}
+/* AM8 grid layout handled by new structure below */
 
 /* Table row visibility control */
 .table-row.am1-only {
@@ -1101,40 +1184,271 @@ body.pm-active .address-field.pm-only {
     display: flex;
 }
 
-/* Adjust grid layout for PM (4 fields in 4x1 grid, shifted left) */
-body.pm-active .address-grid {
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto;
-    justify-content: flex-start;
-    margin-left: calc(100% / 4); /* Shift left by one full field width */
+/* KL fields visibility */
+.address-field.kl-only {
+    display: none;
 }
 
-/* Restore normal positioning for AM1 and AM8 tabs */
-body.am1-active .address-grid,
-body.am8-active .address-grid {
-    display: grid;
+body.kl-active .address-field.kl-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* KL range group */
+.kl-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+    flex: 1;
+}
+
+body.kl-active .kl-range-group {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    justify-content: center;
-    margin-bottom: 2rem;
 }
 
-body.am1-active .address-grid {
-    grid-template-columns: auto;
+/* Контейнер для элементов диапазона КЛ */
+.kl-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
 }
+
+/* Колонка для полей диапазона КЛ */
+.kl-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Стили для полей диапазона КЛ */
+body.kl-active .kl-fields-column .address-field.kl-range-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+/* Стили для кнопки диапазона КЛ */
+.kl-range-button-container {
+    display: none !important;
+}
+
+body.kl-active .kl-range-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* KL address group */
+.kl-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+    flex: 1;
+}
+
+body.kl-active .kl-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и поля адреса КЛ */
+.kl-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* Стили для поля адреса внутри группы КЛ */
+body.kl-active .kl-address-container .address-field.kl-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+/* KL button container rules moved to global button visibility section */
+
+/* PM uses flex layout for groups - old grid definition removed */
+
 
 body.am8-active .address-grid {
-    grid-template-columns: auto auto auto auto;
-    grid-template-rows: auto auto;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
 }
 
-body.am1-active .buttons-container,
-body.am8-active .buttons-container {
+/* AM8 range group - левая группа */
+.am8-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
+}
+
+body.am8-active .am8-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона */
+.am8-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* Колонка для полей диапазона */
+.am8-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* AM8 address group - правая группа */
+.am8-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    flex: 1.3; /* Увеличено на 30% (1.0 + 0.3 = 1.3) */
+}
+
+body.am8-active .am8-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и полей в правой группе */
+.am8-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+body.am8-active .am8-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+/* Сетка для 8 полей адресов */
+.am8-fields-grid {
+    display: none;
+}
+
+body.am8-active .am8-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    flex: 1;
+}
+
+/* Стили для элементов внутри левой группы */
+body.am8-active .am8-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+body.am8-active .am8-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+body.am8-active .am8-fields-column .address-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+body.am8-active .am8-range-controls-container .am8-button-container {
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 1rem;
+    align-items: flex-start;
+    height: auto;
+    margin-top: 24px; /* Выравниваем с первой строкой полей */
 }
+
+/* Стили для полей диапазона в левой группе */
+body.am8-active .am8-range-controls-container .address-field.am8-range-control {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+/* Стили для полей адресов в правой группе - адаптивная ширина */
+body.am8-active .am8-fields-grid .address-field.am8-only {
+    display: flex;
+    flex-direction: column;
+    min-width: 80px; /* Увеличено для лучшего отображения */
+    max-width: none; /* Убираем ограничение max-width */
+    width: 100%; /* Поля занимают всю ширину колонки сетки */
+}
+
+/* Адаптивная ширина input полей */
+body.am8-active .am8-fields-grid .address-field.am8-only .form-input {
+    width: 100%; /* Поля занимают всю ширину контейнера */
+    min-width: 80px; /* Минимальная ширина для 3-значных чисел */
+    max-width: none; /* Убираем ограничение max-width */
+}
+
+/* Стили для кнопки в правой группе - справа, выровнена с первым рядом */
+body.am8-active .am8-address-container .am8-button-container.am8-only {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    margin-top: 20px; /* Выравниваем с первым рядом полей */
+    flex-shrink: 0;
+    margin-left: 1rem; /* Отступ от сетки полей */
+    gap: 0.5rem;
+}
+
+/* Стили для контейнера автозапроса AM8 */
+.am8-autorequest-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-input {
+    margin: 0;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* AM8 buttons-container removed - using am8-button-container inside grid */
 
 /* PM tab specific positioning */
 body.pm-active .parameters-controls {
@@ -1145,24 +1459,100 @@ body.pm-active .parameters-controls {
 }
 
 body.pm-active .address-grid {
-    display: grid !important;
-    grid-template-columns: auto auto auto auto auto !important;
-    gap: 1rem !important;
-    justify-content: flex-start !important;
-    margin-bottom: 0 !important;
-    width: auto !important;
-    align-items: center !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2rem !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    width: 100% !important;
 }
 
 body.pm-active .buttons-container {
     display: none !important;
 }
 
-body.pm-active .pm-button-container {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
+/* PM range group - левая группа */
+.pm-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    min-width: 250px;
 }
+
+body.pm-active .pm-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона PM */
+.pm-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Колонка для полей диапазона PM */
+.pm-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* PM address group - правая группа */
+.pm-address-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    flex: 1;
+}
+
+body.pm-active .pm-address-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для кнопки и полей в правой группе PM */
+.pm-address-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Сетка для 4 полей адресов PM */
+.pm-fields-grid {
+    display: none;
+}
+
+body.pm-active .pm-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1rem;
+    flex: 1;
+}
+
+/* Стили для полей в новой структуре PM */
+body.pm-active .pm-fields-column .address-field.pm-range-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+body.pm-active .pm-fields-grid .address-field.pm-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* PM button container rules moved to global button visibility section */
 
 body.pm-active #writeBtnPm {
     display: inline-flex !important;
@@ -1177,24 +1567,50 @@ body.pm-active #writeBtnPm {
     cursor: pointer !important;
     min-width: 120px !important;
     flex-shrink: 0 !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
 }
 
-/* Button styles for different tabs */
-body.am1-active .buttons-container {
+/* Button styles for different tabs - all buttons are now inside grid containers */
+
+/* Hide general buttons-container for KL tab */
+
+/* AM1 button container rules moved to global button visibility section */
+
+/* Ensure AM1 address field and button have same height */
+body.am1-active .address-field.am1-only {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
 }
 
-body.am8-active .buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-top: 1rem;
+body.am1-active .address-field.am1-only input,
+body.am1-active .address-field.am1-only select {
+    height: 48px;
 }
+
+/* Ensure all AM1 elements have consistent height and alignment */
+body.am1-active .address-field.am1-only {
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+/* Ensure buttons have same height as inputs */
+body.am1-active .am1-button-container .btn {
+    height: 48px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* AM8 button container rules moved to global button visibility section */
+
+/* AM8 buttons-container removed - using am8-button-container inside grid */
 
 /* Hide PM button on AM1 and AM8 tabs */
 body.am1-active .pm-button-container,
@@ -1229,6 +1645,49 @@ body.pm-active #writeBtn {
 body.pm-active .table-row.pm-only {
     display: grid;
 }
+
+/* KL table row visibility */
+.table-row.kl-only {
+    display: none;
+}
+
+body.kl-active .table-row.kl-only {
+    display: grid;
+}
+
+/* KL button container styles */
+body.kl-active .buttons-container {
+    display: none !important;
+}
+
+/* Additional rule to ensure buttons-container is hidden on KL tab */
+.kl-active .buttons-container {
+    display: none !important;
+}
+
+/* Show parameters and results sections for KL tab */
+body.kl-active .parameters-section {
+    display: block !important;
+}
+
+body.kl-active .results-section {
+    display: block !important;
+}
+
+/* Duplicate rule removed - already defined above */
+
+/* KL address grid layout */
+body.kl-active .address-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    gap: 2rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Duplicate rule removed - already defined above */
 
 /* Relay Status Indicators */
 .relay-status-indicator {
@@ -1275,4 +1734,592 @@ body.pm-active .table-row.pm-only {
 
 .relay-status-indicator.closed:hover .relay-dot {
     box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
+}
+
+/* AM8 buttons container */
+.am8-buttons-container {
+    display: none;
+}
+
+body.am8-active .am8-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* All button containers removed - buttons are now inside grid containers */
+
+/* Sensors (SГ) Tab Styles */
+/* Sensors address field visibility */
+.address-field.sensors-only {
+    display: none;
+}
+
+body.sensors-active .address-field.sensors-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 180px;
+    flex-shrink: 0;
+    align-items: flex-start;
+}
+
+/* Sensors range group */
+.sensors-range-group {
+    display: none;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    width: fit-content;
+    max-width: 400px;
+    align-self: stretch;
+}
+
+body.sensors-active .sensors-range-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Контейнер для элементов диапазона датчиков СГ */
+.sensors-range-controls-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Колонка для полей диапазона датчиков СГ */
+.sensors-fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Стили для полей диапазона датчиков СГ */
+body.sensors-active .sensors-fields-column .address-field.sensors-range-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+/* Стили для кнопки диапазона датчиков СГ */
+.sensors-range-button-container {
+    display: none !important;
+}
+
+body.sensors-active .sensors-range-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* Sensors config group */
+.sensors-config-group {
+    display: none;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    width: fit-content;
+    max-width: 812px;
+    min-width: 750px;
+    min-height: 140px;
+    align-self: stretch;
+    box-sizing: border-box;
+}
+
+body.sensors-active .sensors-config-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер для полей конфигурации датчиков СГ */
+.sensors-config-container {
+    display: flex;
+    flex-direction: row;
+    gap: 2mm;
+    align-items: stretch;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+}
+
+/* Сетка для полей конфигурации датчиков СГ */
+.sensors-fields-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 2mm;
+    align-items: stretch;
+    flex-shrink: 0;
+}
+
+/* Стили для полей внутри группы конфигурации */
+body.sensors-active .sensors-config-container .address-field.sensors-only {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 110px;
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+/* Обеспечиваем одинаковую высоту input и select полей */
+body.sensors-active .sensors-config-container .address-field.sensors-only .form-input,
+body.sensors-active .sensors-config-container .address-field.sensors-only .form-select {
+    height: 48px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: auto;
+    max-width: 100%;
+}
+
+/* Обновленные стили для кнопки внутри группы */
+body.sensors-active .sensors-config-group .sensors-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    flex-shrink: 0;
+    align-self: stretch;
+}
+
+/* Sensors table row visibility */
+.table-row.sensors-only {
+    display: none;
+}
+
+body.sensors-active .table-row.sensors-only {
+    display: none !important;
+}
+
+/* Show parameters and results sections for sensors tab */
+body.sensors-active .parameters-section {
+    display: block !important;
+}
+
+body.sensors-active .results-section {
+    display: block !important;
+}
+
+/* Sensors address grid layout - horizontal centered */
+body.sensors-active .address-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    align-content: center !important;
+    gap: 2rem !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+}
+
+/* Sensors button container */
+.sensors-button-container {
+    display: none !important;
+}
+
+body.sensors-active .sensors-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    align-self: stretch !important;
+}
+
+/* Sensors button styling for inline layout */
+body.sensors-active #writeBtnSensors {
+    white-space: nowrap !important;
+    padding: 12px 20px !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+    vertical-align: middle !important;
+}
+
+/* Hide all other write buttons for sensors tab */
+body.sensors-active .am1-button-container,
+body.sensors-active .am8-button-container,
+body.sensors-active .pm-button-container,
+body.sensors-active .kl-button-container {
+    display: none !important;
+}
+
+/* Global button visibility rules - ensure buttons only show on their respective tabs */
+.am1-button-container {
+    display: none !important;
+}
+body.am1-active .am1-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    min-height: 70px !important;
+    height: auto !important;
+}
+
+.am8-button-container {
+    display: none !important;
+}
+body.am8-active .am8-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100% !important;
+}
+
+.pm-button-container {
+    display: none !important;
+}
+
+.pm-range-button-container {
+    display: none !important;
+}
+
+body.pm-active .pm-range-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+body.pm-active .pm-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-left: 1rem; /* Отступ от сетки полей */
+}
+
+.kl-button-container {
+    display: none !important;
+}
+body.kl-active .kl-button-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: auto !important;
+    flex-shrink: 0;
+}
+
+/* Sensors status indicators */
+.sensor-status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.sensor-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.sensor-status-indicator.no-data .sensor-dot {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.sensor-status-indicator.normal .sensor-dot {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
+
+.sensor-status-indicator.warning .sensor-dot {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+
+.sensor-status-indicator.danger .sensor-dot {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Hide results table for sensors tab */
+body.sensors-active .results-table {
+    display: none !important;
+}
+
+/* Sensors connection status container */
+.sensors-status-container {
+    display: none;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+}
+
+body.sensors-active .sensors-status-container {
+    display: flex !important;
+}
+
+/* Sensors connection status indicators */
+.sensors-connection-status {
+    display: none;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    width: 400px;
+}
+
+.sensors-status-block {
+    display: block;
+}
+
+body.sensors-active .sensors-status-block {
+    display: block !important;
+}
+
+.connection-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.connection-indicator:last-child {
+    margin-bottom: 0;
+}
+
+.connection-indicator label {
+    font-weight: 500;
+    color: #495057;
+    margin: 0;
+    flex: 1;
+}
+
+.status-indicator-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 0.75rem;
+}
+
+.rs485-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.rs485-status-indicator .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.rs485-status-indicator .status-text {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* RS485 Status states */
+.rs485-status-indicator.offline {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #6c757d;
+}
+
+.rs485-status-indicator.offline .status-dot {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.rs485-status-indicator.normal {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.rs485-status-indicator.normal .status-dot {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
+}
+
+.rs485-status-indicator.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.rs485-status-indicator.error .status-dot {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Circular Status Indicators */
+.circular-status-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.circular-status-indicator .status-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid;
+    transition: all 0.3s ease;
+}
+
+/* Circular Status States */
+.circular-status-indicator.offline {
+    background-color: transparent;
+}
+
+.circular-status-indicator.offline .status-dot {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.circular-status-indicator.normal {
+    background-color: transparent;
+}
+
+.circular-status-indicator.normal .status-dot {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.4);
+}
+
+.circular-status-indicator.error {
+    background-color: transparent;
+}
+
+.circular-status-indicator.error .status-dot {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 12px rgba(220, 53, 69, 0.4);
+}
+
+/* Sensors Grid - 12 blocks with 5 circles each */
+.sensors-grid-container {
+    display: none;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+
+body.sensors-active .sensors-grid-container {
+    display: block !important;
+}
+
+.sensors-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    column-gap: 2rem;
+    row-gap: 0.75rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.sensor-block {
+    display: flex;
+    align-items: center;
+    position: relative;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1rem;
+    min-height: 70px;
+}
+
+.block-number {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.circles-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-left: 2rem; /* Space for block number */
+    padding-right: 0.5rem; /* Small right padding */
+}
+
+.black-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.black-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Circle states */
+.black-circle.state-black {
+    background-color: #000;
+    border-color: #333;
+}
+
+.black-circle.state-red {
+    background-color: #dc3545;
+    border-color: #c82333;
+}
+
+.black-circle.state-green {
+    background-color: #28a745;
+    border-color: #1e7e34;
+}
+
+.black-circle.state-blue {
+    background-color: #007bff;
+    border-color: #0056b3;
+}
+
+/* MOK Address Fraction Display */
+.address-fraction {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.address-top {
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 1px;
+}
+
+.device-type-bottom {
+    font-size: 9px;
+    line-height: 1;
+    opacity: 0.9;
+    text-align: center;
+    word-break: break-all;
+    max-width: 100%;
 }

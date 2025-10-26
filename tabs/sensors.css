@@ -1,0 +1,191 @@
+/* Sensors Tab Specific Styles */
+
+/* Sensors Tab Panel */
+#sensors {
+    /* Inherit base styles from main CSS */
+}
+
+/* Sensors specific parameter cards */
+#sensors .param-card {
+    background: linear-gradient(135deg, #e0f2f1 0%, #f1f8e9 100%);
+    border-left: 4px solid #00bcd4;
+}
+
+#sensors .param-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 188, 212, 0.2);
+}
+
+/* Sensors connection indicators */
+#sensors .sensors-connection-indicators {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+#sensors .sensor-indicator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#sensors .sensor-indicator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+#sensors .sensor-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    background: linear-gradient(135deg, #00bcd4, #0097a7);
+}
+
+#sensors .sensor-info {
+    flex: 1;
+}
+
+#sensors .sensor-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+#sensors .sensor-status {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+#sensors .sensor-status.online {
+    background: #d4edda;
+    color: #155724;
+}
+
+#sensors .sensor-status.offline {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Sensors control buttons */
+#sensors .sensor-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#sensors .sensor-controls .btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+#sensors .sensor-controls .btn-primary {
+    background: linear-gradient(135deg, #00bcd4, #0097a7);
+    border: none;
+    color: white;
+}
+
+#sensors .sensor-controls .btn-primary:hover {
+    background: linear-gradient(135deg, #0097a7, #00838f);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 188, 212, 0.3);
+}
+
+#sensors .sensor-controls .btn-warning {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border: none;
+    color: white;
+}
+
+#sensors .sensor-controls .btn-warning:hover {
+    background: linear-gradient(135deg, #f57c00, #ef6c00);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.3);
+}
+
+/* Sensors input focus states */
+#sensors .form-input:focus,
+#sensors .form-select:focus {
+    border-color: #00bcd4;
+    box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+}
+
+/* Sensors specific animations */
+#sensors .param-card {
+    animation: slideInFromLeft 0.5s ease-out;
+}
+
+#sensors .sensor-indicator {
+    animation: slideInFromRight 0.5s ease-out;
+}
+
+#sensors .sensor-indicator:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+#sensors .sensor-indicator:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Sensors loading states */
+#sensors .loading {
+    border-top-color: #00bcd4;
+}
+
+/* Sensors responsive adjustments */
+@media (max-width: 768px) {
+    #sensors .parameters-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    #sensors .sensors-connection-indicators {
+        grid-template-columns: 1fr;
+    }
+    
+    #sensors .sensor-controls {
+        flex-direction: column;
+    }
+    
+    #sensors .sensor-controls .btn {
+        width: 100%;
+    }
+}

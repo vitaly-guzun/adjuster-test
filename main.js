@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs').promises;
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
@@ -160,6 +161,79 @@ ipcMain.handle('test-device', async (event, address) => {
     }
   } catch (error) {
     console.error('Test device error:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+// IPC обработчики для работы с внутренними конфигурационными файлами
+const getUserDataPath = () => {
+  return app.getPath('userData');
+};
+
+ipcMain.handle('save-mok-config', async (event, configData) => {
+  try {
+    const userDataPath = getUserDataPath();
+    const configPath = path.join(userDataPath, 'mok-config.json');
+    
+    // Создаем директорию если не существует
+    await fs.mkdir(userDataPath, { recursive: true });
+    
+    // Добавляем метаданные
+    const fullConfigData = {
+      ...configData,
+      lastModified: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    await fs.writeFile(configPath, JSON.stringify(fullConfigData, null, 2), 'utf8');
+    
+    console.log('MOK config saved to:', configPath);
+    return { success: true, path: configPath };
+  } catch (error) {
+    console.error('Error saving MOK config:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('load-mok-config', async () => {
+  try {
+    const userDataPath = getUserDataPath();
+    const configPath = path.join(userDataPath, 'mok-config.json');
+    
+    // Проверяем существование файла
+    try {
+      await fs.access(configPath);
+    } catch {
+      // Файл не существует, возвращаем пустую конфигурацию
+      return { success: true, data: { sections: [], scanResults: [], deviceInfo: [] } };
+    }
+    
+    const fileContent = await fs.readFile(configPath, 'utf8');
+    const configData = JSON.parse(fileContent);
+    
+    console.log('MOK config loaded from:', configPath);
+    return { success: true, data: configData };
+  } catch (error) {
+    console.error('Error loading MOK config:', error);
+    return { success: false, message: error.message, data: null };
+  }
+});
+
+ipcMain.handle('clear-mok-config', async () => {
+  try {
+    const userDataPath = getUserDataPath();
+    const configPath = path.join(userDataPath, 'mok-config.json');
+    
+    try {
+      await fs.unlink(configPath);
+    } catch {
+      // Файл уже не существует, это нормально
+    }
+    
+    console.log('MOK config cleared');
+    return { success: true };
+  } catch (error) {
+    console.error('Error clearing MOK config:', error);
     return { success: false, message: error.message };
   }
 });

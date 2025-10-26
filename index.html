@@ -17,10 +17,6 @@
                     <i class="fas fa-cogs"></i>
                     <span>RS485 Adjuster</span>
                 </div>
-                <div class="connection-status" id="connectionStatus">
-                    <i class="fas fa-circle status-indicator"></i>
-                    <span>Отключено</span>
-                </div>
             </div>
         </header>
 
@@ -74,7 +70,7 @@
         <section class="tabs-section">
             <div class="tabs-container">
                 <div class="tabs">
-                    <button class="tab active" data-tab="am">
+                    <button class="tab active" data-tab="am1">
                         <i class="fas fa-microchip"></i>
                         AM1
                     </button>
@@ -101,93 +97,11 @@
                 </div>
 
                 <div class="tab-content">
-                    <div id="am" class="tab-panel active">
-                        <div class="panel-header">
-                            <h3>Настройки AM1 модуля</h3>
-                        </div>
-                        <div class="parameters-grid">
-                            <!-- Параметры AM1 модуля будут добавлены здесь -->
-                        </div>
-                    </div>
-
-                    <div id="am8" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки AM8 модуля</h3>
-                        </div>
-                        
-
-
-                    </div>
-
-                    <div id="pm" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки PM модуля</h3>
-                        </div>
-                        <div class="parameters-grid">
-                            <!-- Параметры PM модуля будут добавлены здесь -->
-                        </div>
-                    </div>
-
-                    <div id="kl" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки КЛ модуля</h3>
-                            <p>Конфигурация коммуникационного модуля</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Протокол</label>
-                                <select class="form-select">
-                                    <option>Modbus RTU</option>
-                                    <option>Modbus ASCII</option>
-                                    <option>Profinet</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Адрес устройства</label>
-                                <input type="number" class="form-input" value="1" min="1" max="247">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="sensors" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки датчиков СГ</h3>
-                            <p>Конфигурация датчиков системы газоанализа</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Тип датчика</label>
-                                <select class="form-select">
-                                    <option>Датчик CO</option>
-                                    <option>Датчик CH4</option>
-                                    <option>Датчик O2</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Диапазон измерения</label>
-                                <input type="text" class="form-input" value="0-1000 ppm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="mok" class="tab-panel">
-                        <div class="panel-header">
-                            <h3>Настройки MOK модуля</h3>
-                            <p>Конфигурация модуля управления клапанами</p>
-                        </div>
-                        <div class="parameters-grid">
-                            <div class="param-card">
-                                <label>Тип клапана</label>
-                                <select class="form-select">
-                                    <option>Электромагнитный</option>
-                                    <option>Пневматический</option>
-                                    <option>Гидравлический</option>
-                                </select>
-                            </div>
-                            <div class="param-card">
-                                <label>Время срабатывания</label>
-                                <input type="number" class="form-input" value="100" min="10" max="5000">
-                            </div>
+                    <!-- Tab panels will be loaded dynamically from tabs/ directory -->
+                    <div id="tab-loading" class="tab-loading">
+                        <div class="loading-spinner">
+                            <div class="loading"></div>
+                            <p>Загрузка вкладки...</p>
                         </div>
                     </div>
                 </div>
@@ -200,78 +114,288 @@
                 <h2>Настраиваемые параметры</h2>
                 <div class="parameters-controls">
                     <div class="address-grid">
-                        <!-- Поле для AM1 (одноканальное устройство) -->
-                        <div class="address-field am1-only">
-                            <label for="address1">Адрес:</label>
-                            <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
-                        </div>
-                        <!-- Поля для AM8 (8-канальное устройство) -->
-                        <div class="address-field am8-only">
-                            <label for="address1-am8">Адрес 1:</label>
-                            <input type="number" id="address1-am8" class="form-input" value="1" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address2">Адрес 2:</label>
-                            <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address3">Адрес 3:</label>
-                            <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address4">Адрес 4:</label>
-                            <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address5">Адрес 5:</label>
-                            <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address6">Адрес 6:</label>
-                            <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address7">Адрес 7:</label>
-                            <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
-                        </div>
-                        <div class="address-field am8-only">
-                            <label for="address8">Адрес 8:</label>
-                            <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
-                        </div>
-                        <!-- Поля для PM (4-канальный релейный модуль) -->
-                        <div class="address-field pm-only">
-                            <label for="pm-address1">Адрес 1:</label>
-                            <input type="number" id="pm-address1" class="form-input" value="1" min="1" max="247">
-                        </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address2">Адрес 2:</label>
-                            <input type="number" id="pm-address2" class="form-input" value="2" min="1" max="247">
-                        </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address3">Адрес 3:</label>
-                            <input type="number" id="pm-address3" class="form-input" value="3" min="1" max="247">
+                        <!-- Группа для выбора диапазона адресов AM1 -->
+                        <div class="am1-group range-group am1-only">
+                            <div class="address-field am1-only">
+                                <label for="address-range">Диапазон адресов:</label>
+                                <select id="address-range" class="form-select">
+                                    <option value="1">1-10</option>
+                                    <option value="11">11-20</option>
+                                    <option value="21">21-30</option>
+                                    <option value="31">31-40</option>
+                                    <option value="41">41-50</option>
+                                    <option value="51">51-60</option>
+                                    <option value="61">61-70</option>
+                                    <option value="71">71-80</option>
+                                    <option value="81">81-90</option>
+                                    <option value="91">91-100</option>
+                                    <option value="101">101-110</option>
+                                    <option value="111">111-120</option>
+                                    <option value="121">121-127</option>
+                                </select>
                             </div>
-                        <div class="address-field pm-only">
-                            <label for="pm-address4">Адрес 4:</label>
-                            <input type="number" id="pm-address4" class="form-input" value="4" min="1" max="247">
+                            <div class="am1-button-container am1-only">
+                                <button id="requestRangeBtn" class="btn btn-info">
+                                    <i class="fas fa-search"></i>
+                                    Запросить диапазон адресов
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Группа для записи адреса AM1 -->
+                        <div class="am1-group write-group am1-only">
+                            <div class="address-field am1-only">
+                                <label for="address1">Новый адрес:</label>
+                                <input type="number" id="address1" class="form-input" value="1" min="1" max="247">
+                            </div>
+                            <div class="am1-button-container am1-only">
+                                <button id="writeBtn" class="btn btn-success">
+                                    <i class="fas fa-save"></i>
+                                    Записать адрес
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Группа для запроса диапазона AM8 -->
+                        <div class="am8-range-group am8-only">
+                            <div class="am8-range-controls-container">
+                                <div class="am8-fields-column">
+                                    <div class="address-field am8-only am8-range-control">
+                                        <label for="am8-start-address">Начальный адрес:</label>
+                                        <input type="number" id="am8-start-address" class="form-input" value="10" min="10" max="99">
+                                    </div>
+                                    <div class="address-field am8-only am8-range-control">
+                                        <label for="am8-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="am8-end-address" class="form-input" value="17" min="10" max="99">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов AM8 -->
+                                <div class="am8-button-container am8-only am8-range-control">
+                                    <button id="requestRangeBtnAm8" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Группа для записи адресов AM8 -->
+                        <div class="am8-address-group am8-only">
+                            <div class="am8-address-container">
+                                <!-- Поля для AM8 (8-канальное устройство) -->
+                                <div class="am8-fields-grid">
+                                    <div class="address-field am8-only">
+                                        <label for="address1-am8">Адрес 1:</label>
+                                        <input type="number" id="address1-am8" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address2">Адрес 2:</label>
+                                        <input type="number" id="address2" class="form-input" value="2" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address3">Адрес 3:</label>
+                                        <input type="number" id="address3" class="form-input" value="3" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address4">Адрес 4:</label>
+                                        <input type="number" id="address4" class="form-input" value="4" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address5">Адрес 5:</label>
+                                        <input type="number" id="address5" class="form-input" value="5" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address6">Адрес 6:</label>
+                                        <input type="number" id="address6" class="form-input" value="6" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address7">Адрес 7:</label>
+                                        <input type="number" id="address7" class="form-input" value="7" min="1" max="247">
+                                    </div>
+                                    <div class="address-field am8-only">
+                                        <label for="address8">Адрес 8:</label>
+                                        <input type="number" id="address8" class="form-input" value="8" min="1" max="247">
+                                    </div>
+                                </div>
+                                <!-- Кнопка и чекбокс для AM8 (справа) -->
+                                <div class="am8-button-container am8-only">
+                                    <button id="writeBtnAm8" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                    <div class="am8-autorequest-container">
+                                        <input type="checkbox" id="autorequestCheckboxAm8" class="checkbox-input">
+                                        <label for="autorequestCheckboxAm8" class="checkbox-label">Автозапрос</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Группа для запроса диапазона PM -->
+                        <div class="pm-range-group pm-only">
+                            <div class="pm-range-controls-container">
+                                <div class="pm-fields-column">
+                                    <div class="address-field pm-only pm-range-control">
+                                        <label for="pm-start-address">Начальный адрес:</label>
+                                        <input type="number" id="pm-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field pm-only pm-range-control">
+                                        <label for="pm-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="pm-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов PM -->
+                                <div class="pm-range-button-container pm-only pm-range-control">
+                                    <button id="requestRangeBtnPm" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Группа для записи адресов PM -->
+                        <div class="pm-address-group pm-only">
+                            <div class="pm-address-container">
+                                <!-- Поля для PM (4-канальный релейный модуль) -->
+                                <div class="pm-fields-grid">
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address1">Адрес 1:</label>
+                                        <input type="number" id="pm-address1" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address2">Адрес 2:</label>
+                                        <input type="number" id="pm-address2" class="form-input" value="2" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address3">Адрес 3:</label>
+                                        <input type="number" id="pm-address3" class="form-input" value="3" min="1" max="247">
+                                    </div>
+                                    <div class="address-field pm-only">
+                                        <label for="pm-address4">Адрес 4:</label>
+                                        <input type="number" id="pm-address4" class="form-input" value="4" min="1" max="247">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для записи PM (справа) -->
+                                <div class="pm-button-container pm-only">
+                                    <button id="writeBtnPm" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
-                        <!-- Кнопка для PM (внутри grid) -->
-                        <div class="pm-button-container pm-only">
-                            <button id="writeBtnPm" class="btn btn-success">
-                                <i class="fas fa-save"></i>
-                                Записать
-                            </button>
+                        <!-- Группа для запроса диапазона КЛ -->
+                        <div class="kl-range-group kl-only">
+                            <div class="kl-range-controls-container">
+                                <div class="kl-fields-column">
+                                    <div class="address-field kl-only kl-range-control">
+                                        <label for="kl-start-address">Начальный адрес:</label>
+                                        <input type="number" id="kl-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field kl-only kl-range-control">
+                                        <label for="kl-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="kl-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов КЛ -->
+                                <div class="kl-range-button-container kl-only kl-range-control">
+                                    <button id="requestRangeBtnKl" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Запросить диапазон адресов
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Группа для записи адреса КЛ -->
+                        <div class="kl-address-group kl-only">
+                            <div class="kl-address-container">
+                                <div class="address-field kl-only">
+                                    <label for="kl-address">Адрес:</label>
+                                    <input type="number" id="kl-address" class="form-input" value="1" min="1" max="247">
+                                </div>
+                                <div class="kl-button-container kl-only">
+                                    <button id="writeBtnKl" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Записать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Группа для запроса диапазона датчиков СГ -->
+                        <div class="sensors-range-group sensors-only">
+                            <div class="sensors-range-controls-container">
+                                <div class="sensors-fields-column">
+                                    <div class="address-field sensors-only sensors-range-control">
+                                        <label for="sensors-start-address">Начальный адрес:</label>
+                                        <input type="number" id="sensors-start-address" class="form-input" value="1" min="1" max="127">
+                                    </div>
+                                    <div class="address-field sensors-only sensors-range-control">
+                                        <label for="sensors-end-address">Окончание диапазона:</label>
+                                        <input type="number" id="sensors-end-address" class="form-input" value="4" min="1" max="127">
+                                    </div>
+                                </div>
+                                <!-- Кнопка для запроса диапазона адресов датчиков СГ -->
+                                <div class="sensors-range-button-container sensors-only sensors-range-control">
+                                    <button id="requestRangeBtnSensors" class="btn btn-info">
+                                        <i class="fas fa-search"></i>
+                                        Сканировать
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Группа для конфигурации датчиков СГ -->
+                        <div class="sensors-config-group sensors-only">
+                            <div class="sensors-config-container">
+                                <div class="sensors-fields-grid">
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-address">Адрес:</label>
+                                        <input type="number" id="sensors-address" class="form-input" value="1" min="1" max="247">
+                                    </div>
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-board-count">Количество плат:</label>
+                                        <select id="sensors-board-count" class="form-select">
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option value="8">8</option>
+                                            <option value="9">9</option>
+                                            <option value="10">10</option>
+                                            <option value="11">11</option>
+                                            <option value="12">12</option>
+                                        </select>
+                                    </div>
+                                    <div class="address-field sensors-only">
+                                        <label for="sensors-power">Мощность:</label>
+                                        <select id="sensors-power" class="form-select">
+                                            <option value="10">10%</option>
+                                            <option value="20">20%</option>
+                                            <option value="30">30%</option>
+                                            <option value="40">40%</option>
+                                            <option value="50">50%</option>
+                                            <option value="60">60%</option>
+                                            <option value="70">70%</option>
+                                            <option value="80">80%</option>
+                                            <option value="90">90%</option>
+                                            <option value="100" selected>100%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Кнопка для датчиков СГ -->
+                                <div class="sensors-button-container sensors-only">
+                                    <button id="writeBtnSensors" class="btn btn-success">
+                                        <i class="fas fa-save"></i>
+                                        Запись конфигурации
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Кнопка Записать для всех вкладок -->
-                    <div class="buttons-container">
-                        <button id="writeBtn" class="btn btn-success">
-                            <i class="fas fa-save"></i>
-                            Записать
-                        </button>
-                    </div>
+                    <!-- All buttons are now inside their respective grid containers -->
                 </div>
             </div>
         </section>
@@ -482,8 +606,275 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Строка для КЛ (одноканальное устройство) -->
+                    <div class="table-row kl-only">
+                        <div class="table-cell">1</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="input-status-indicator no-data">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Строки для датчиков СГ -->
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">CO</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">CH4</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-row sensors-only">
+                        <div class="table-cell">O2</div>
+                        <div class="table-cell">
+                            <div class="status-indicator offline">
+                                <i class="fas fa-power-off"></i>
+                                Отключено
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="sensor-status-indicator no-data">
+                                <div class="sensor-dot"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Sensors Connection Status (заменитель таблицы для датчиков СГ) -->
+            <div class="sensors-status-container sensors-only">
+                <!-- Пустые блоки -->
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Связь RS485 – компьютер</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>связь RS485 Ведущий/Ведомый</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Тампер Ведущего</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>Тампер Ведомого</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sensors-connection-status sensors-status-block">
+                    <div class="connection-indicator">
+                        <label>Состояние реле Ведущего</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="connection-indicator">
+                        <label>Состояние реле Ведомого</label>
+                        <div class="status-indicator-wrapper">
+                            <div class="circular-status-indicator offline">
+                                <div class="status-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Sensors Grid (12 blocks with 5 circles each) -->
+            <div class="sensors-grid-container sensors-only">
+                <div class="sensors-grid">
+                    <!-- Row 1 -->
+                    <div class="sensor-block">
+                        <div class="block-number">1</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">2</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="sensor-block">
+                        <div class="block-number">3</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">4</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 3 -->
+                    <div class="sensor-block">
+                        <div class="block-number">5</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">6</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 4 -->
+                    <div class="sensor-block">
+                        <div class="block-number">7</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">8</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 5 -->
+                    <div class="sensor-block">
+                        <div class="block-number">9</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">10</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <!-- Row 6 -->
+                    <div class="sensor-block">
+                        <div class="block-number">11</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                    <div class="sensor-block">
+                        <div class="block-number">12</div>
+                        <div class="circles-row">
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                            <div class="black-circle state-black"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </section>
     </div>
 

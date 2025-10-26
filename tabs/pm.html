@@ -1,0 +1,121 @@
+<!-- PM Tab Template -->
+<div class="tab-panel" id="pm">
+    <div class="panel-header">
+        <h3>Настройки PM модуля</h3>
+        <p>4-канальный релейный модуль</p>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Конфигурация реле</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card" data-relay="1">
+            <label for="pm-relay1-mode">Реле 1 - Режим</label>
+            <select id="pm-relay1-mode" class="form-select">
+                <option value="manual">Ручное</option>
+                <option value="auto">Автоматическое</option>
+                <option value="timer">По таймеру</option>
+            </select>
+        </div>
+        <div class="param-card" data-relay="1">
+            <label for="pm-relay1-delay">Реле 1 - Задержка (мс)</label>
+            <input type="number" id="pm-relay1-delay" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card" data-relay="2">
+            <label for="pm-relay2-mode">Реле 2 - Режим</label>
+            <select id="pm-relay2-mode" class="form-select">
+                <option value="manual">Ручное</option>
+                <option value="auto">Автоматическое</option>
+                <option value="timer">По таймеру</option>
+            </select>
+        </div>
+        <div class="param-card" data-relay="2">
+            <label for="pm-relay2-delay">Реле 2 - Задержка (мс)</label>
+            <input type="number" id="pm-relay2-delay" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card" data-relay="3">
+            <label for="pm-relay3-mode">Реле 3 - Режим</label>
+            <select id="pm-relay3-mode" class="form-select">
+                <option value="manual">Ручное</option>
+                <option value="auto">Автоматическое</option>
+                <option value="timer">По таймеру</option>
+            </select>
+        </div>
+        <div class="param-card" data-relay="3">
+            <label for="pm-relay3-delay">Реле 3 - Задержка (мс)</label>
+            <input type="number" id="pm-relay3-delay" class="form-input" value="100" min="10" max="5000">
+        </div>
+        <div class="param-card" data-relay="4">
+            <label for="pm-relay4-mode">Реле 4 - Режим</label>
+            <select id="pm-relay4-mode" class="form-select">
+                <option value="manual">Ручное</option>
+                <option value="auto">Автоматическое</option>
+                <option value="timer">По таймеру</option>
+            </select>
+        </div>
+        <div class="param-card" data-relay="4">
+            <label for="pm-relay4-delay">Реле 4 - Задержка (мс)</label>
+            <input type="number" id="pm-relay4-delay" class="form-input" value="100" min="10" max="5000">
+        </div>
+    </div>
+    
+    <div class="section-subheader">
+        <h4>Управление реле</h4>
+    </div>
+    
+    <div class="parameters-grid">
+        <div class="param-card">
+            <label>Реле 1</label>
+            <div class="relay-controls">
+                <button id="pm-relay1-on" class="btn btn-success">
+                    <i class="fas fa-power-off"></i>
+                    Включить
+                </button>
+                <button id="pm-relay1-off" class="btn btn-secondary">
+                    <i class="fas fa-power-off"></i>
+                    Выключить
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Реле 2</label>
+            <div class="relay-controls">
+                <button id="pm-relay2-on" class="btn btn-success">
+                    <i class="fas fa-power-off"></i>
+                    Включить
+                </button>
+                <button id="pm-relay2-off" class="btn btn-secondary">
+                    <i class="fas fa-power-off"></i>
+                    Выключить
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Реле 3</label>
+            <div class="relay-controls">
+                <button id="pm-relay3-on" class="btn btn-success">
+                    <i class="fas fa-power-off"></i>
+                    Включить
+                </button>
+                <button id="pm-relay3-off" class="btn btn-secondary">
+                    <i class="fas fa-power-off"></i>
+                    Выключить
+                </button>
+            </div>
+        </div>
+        <div class="param-card">
+            <label>Реле 4</label>
+            <div class="relay-controls">
+                <button id="pm-relay4-on" class="btn btn-success">
+                    <i class="fas fa-power-off"></i>
+                    Включить
+                </button>
+                <button id="pm-relay4-off" class="btn btn-secondary">
+                    <i class="fas fa-power-off"></i>
+                    Выключить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
